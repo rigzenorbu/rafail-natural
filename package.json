@@ -1,0 +1,35 @@
+{
+  "name": "rafail-natural",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "setup": "prisma db push && tsx prisma/seed.ts",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "@types/three": "^0.169.0",
+    "bcryptjs": "^3.0.3",
+    "jose": "^5.10.0",
+    "next": "^15.5.27",
+    "nodemailer": "^10.0.15",
+    "razorpay": "^2.9.8",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "three": "^0.169.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "@types/nodemailer": "^8.0.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "prisma": "^6.19.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3"
+  }
+}

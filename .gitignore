@@ -1,0 +1,13 @@
+node_modules
+.next
+.env
+*.db
+*.db-journal
+uploads/*
+!uploads/.gitkeep
+promo/*
+!promo/README.txt
+next-env.d.ts
+*.tsbuildinfo
+.DS_Store
+node_modules.icloud-old
