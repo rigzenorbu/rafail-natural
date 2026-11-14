@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Logo } from "@/components/Logo";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -26,11 +27,15 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg-soft)", display: "grid", placeItems: "center", padding: 16 }}>
-      <form className="card stack" style={{ width: "100%", maxWidth: 380 }} onSubmit={submit}>
-        <span className="logo"><span className="logo-mark">R</span><span>Rafail Natural<small>Admin panel</small></span></span>
-        <div className="field"><label>Email</label><input className="input" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
-        <div className="field"><label>Password</label><input className="input" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} /></div>
+    <div className="admin-login">
+      <form className="card stack admin-login-card" onSubmit={submit}>
+        <div className="admin-login-head">
+          <Logo tag="Admin panel" />
+          <h1>Welcome back</h1>
+          <p className="muted small">Log in to manage orders, products and settings.</p>
+        </div>
+        <div className="field"><label>Email</label><input className="input" type="email" autoComplete="username" required value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+        <div className="field"><label>Password</label><input className="input" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} /></div>
         {error && <p className="alert alert-error small">{error}</p>}
         <button className="btn btn-primary btn-block" disabled={busy}>{busy ? "Logging in…" : "Log in"}</button>
       </form>

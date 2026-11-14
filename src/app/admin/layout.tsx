@@ -4,6 +4,7 @@ import { isAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { REAL_ORDER } from "@/lib/constants";
 import OrderAlerts from "@/components/admin/OrderAlerts";
+import { Logo } from "@/components/Logo";
 import AdminNav from "@/components/admin/AdminNav";
 import LogoutButton from "@/components/LogoutButton";
 
@@ -24,10 +25,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="admin-shell">
       <aside className="admin-side">
-        <span className="logo">
-          <span className="logo-mark">R</span>
-          <span>Rafail Natural<small>Admin panel</small></span>
-        </span>
+        <span className="admin-brand"><Logo tag="Admin panel" /></span>
         <AdminNav newOrders={newCount} />
         <div className="bottom">
           <Link href="/" target="_blank">View store ↗</Link>
