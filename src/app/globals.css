@@ -134,6 +134,7 @@ p { margin: 0 0 1em; }
 .footer li { margin-bottom: 8px; }
 .footer a:hover { color: #fff; }
 .footer-bottom { border-top: 1px solid #34413a; margin-top: 32px; padding-top: 20px; font-size: 0.8rem; color: #8d9a92; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.footer-credit { color: #c9d2cc; font-weight: 600; }
 
 /* ---------- Home ---------- */
 .hero { background: linear-gradient(120deg, #f4efe4 0%, #eef3ec 100%); border-bottom: 1px solid var(--border); }

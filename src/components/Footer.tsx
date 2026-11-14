@@ -46,6 +46,7 @@ export default async function Footer() {
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} Rafail Natural. All rights reserved.</span>
           <span>UPI Scan & Pay · Cash on Delivery</span>
+          <span>Developed by <b className="footer-credit">Third Pole Solutions</b></span>
         </div>
       </div>
     </footer>
