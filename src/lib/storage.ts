@@ -2,7 +2,10 @@ import { createHash, randomBytes } from "crypto";
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 
-export const UPLOAD_DIR = path.join(process.cwd(), "uploads");
+import { UPLOADS } from "./paths";
+
+// On the live server this is permanent storage outside the app (see DATA_DIR in .env.example).
+export const UPLOAD_DIR = UPLOADS;
 
 const ALLOWED: Record<string, string> = {
   "image/jpeg": "jpg",

@@ -1,11 +1,12 @@
 import { randomBytes } from "crypto";
 import { mkdir, readdir, stat, unlink, writeFile } from "fs/promises";
 import path from "path";
+import { PROMOS } from "./paths";
 
 // The home-page banner (a product video or advertisement image) lives in the "promo" folder.
 // The newest video/image in that folder is shown. Replace it from Admin → Home banner,
 // or simply drop a new file into the folder.
-export const PROMO_DIR = path.join(process.cwd(), "promo");
+export const PROMO_DIR = PROMOS;
 
 export const PROMO_TYPES: Record<string, { mime: string; kind: "video" | "image" }> = {
   mp4: { mime: "video/mp4", kind: "video" },

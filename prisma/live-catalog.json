@@ -1,0 +1,131 @@
+{
+  "settings": {
+    "shippingFee": 80,
+    "freeShippingAbove": 1000,
+    "codEnabled": true,
+    "codFee": 0,
+    "storePhone": "+91 88999 77455",
+    "storeEmail": "hello@rafailnatural.com",
+    "storeAddress": "Main Bazaar, Leh, Ladakh 194101",
+    "announcement": "Free shipping on orders above ₹1000"
+  },
+  "categories": [
+    {
+      "name": "Seabuckthorn",
+      "slug": "seabuckthorn",
+      "sortOrder": 0
+    },
+    {
+      "name": "Himalayan Wellness",
+      "slug": "himalayan-wellness",
+      "sortOrder": 5
+    },
+    {
+      "name": "Snow Land",
+      "slug": "snow-land",
+      "sortOrder": -1
+    }
+  ],
+  "products": [
+    {
+      "name": "Sea Buckthorn Pulp",
+      "slug": "sea-buckthorn-pulp",
+      "shortDescription": "Rafail sea buckthorn pulp. Mix two tablespoons in a glass of water and enjoy.",
+      "description": "Rafail Sea Buckthorn Pulp in a 300 ml glass bottle.\n\nServing suggestion: mix 2 tablespoons of sea buckthorn pulp in one glass of water. Stir well and enjoy.\n\nBenefits, as listed on the pack:\n- Rich in Vitamin C\n- Boosts immunity\n- Supports healthy skin\n- Supports digestion\n- Promotes heart health\n- Helps protect eye health\n- Supports overall wellness\n- Helps protect cells from damage",
+      "category": "seabuckthorn",
+      "isFeatured": true,
+      "images": [
+        "rafail-sea-buckthorn-pulp-v2.jpg"
+      ],
+      "variants": [
+        {
+          "label": "300 ml",
+          "weightGrams": 300,
+          "price": 650,
+          "discountPercent": 0,
+          "stock": 8
+        }
+      ]
+    },
+    {
+      "name": "Shilajit",
+      "slug": "shilajit",
+      "shortDescription": "Pure Himalayan shilajit for energy and vitality, straight from the Himalayas.",
+      "description": "Himalayan shilajit in a 10 g glass jar.\n\n- Pure Himalayan shilajit\n- Energy and vitality\n- Straight from the Himalayas",
+      "category": "himalayan-wellness",
+      "isFeatured": true,
+      "images": [
+        "rafail-shilajit.jpg"
+      ],
+      "variants": [
+        {
+          "label": "10 g",
+          "weightGrams": 10,
+          "price": 1500,
+          "discountPercent": 0,
+          "stock": 10
+        }
+      ]
+    },
+    {
+      "name": "Fuller’s Earth & Seabuckthorn (Markalak)",
+      "slug": "snow-land-fullers-earth-seabuckthorn",
+      "shortDescription": "Fuller’s earth blended with Himalayan seabuckthorn for clear skin.",
+      "description": "Snow Land Fuller’s Earth (Markalak) blended with seabuckthorn from Ladakh.\n\n- 99.9% natural, chemical free\n- Clears skin\n- Controls oil\n- Deep cleansing, for oily skin",
+      "category": "snow-land",
+      "isFeatured": true,
+      "images": [
+        "snowland-fullers-earth-seabuckthorn-v2.jpg"
+      ],
+      "variants": [
+        {
+          "label": "110 g",
+          "weightGrams": 110,
+          "price": 250,
+          "discountPercent": 0,
+          "stock": 50
+        }
+      ]
+    },
+    {
+      "name": "Fuller’s Earth (Markalak)",
+      "slug": "snow-land-fullers-earth",
+      "shortDescription": "Pure Ladakhi fuller’s earth for deep cleansing and oil control.",
+      "description": "Snow Land Fuller’s Earth (Markalak), a natural clay from Ladakh.\n\n- 99.9% natural, no chemicals\n- Controls oil\n- Deep cleansing\n- Pure and gentle, for oily skin\n\nPacked in a glass jar with a gold lid.",
+      "category": "snow-land",
+      "isFeatured": true,
+      "images": [
+        "snowland-fullers-earth-v2.jpg"
+      ],
+      "variants": [
+        {
+          "label": "110 g",
+          "weightGrams": 110,
+          "price": 200,
+          "discountPercent": 0,
+          "stock": 48
+        }
+      ]
+    },
+    {
+      "name": "Seabuckthorn Dry Berry",
+      "slug": "snow-land-seabuckthorn-dry-berry",
+      "shortDescription": "Whole dried seabuckthorn berries from the heights of Ladakh.",
+      "description": "Snow Land Seabuckthorn Dry Berry: whole seabuckthorn berries, naturally dried.\n\n- 99.9% natural, no chemicals\n- Pure and gentle\n- Suitable for all skin types",
+      "category": "snow-land",
+      "isFeatured": true,
+      "images": [
+        "snowland-seabuckthorn-dry-berry.jpg"
+      ],
+      "variants": [
+        {
+          "label": "85 g",
+          "weightGrams": 85,
+          "price": 350,
+          "discountPercent": 0,
+          "stock": 47
+        }
+      ]
+    }
+  ]
+}

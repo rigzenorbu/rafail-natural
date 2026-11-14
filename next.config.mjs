@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Hostinger runs Next.js apps from the self-contained "standalone" build.
+  output: "standalone",
   // Used only when building the browse-only preview for GitHub Pages (scripts/build-pages.sh).
   basePath: process.env.PAGES_BASE_PATH || undefined,
   distDir: process.env.PAGES_BASE_PATH ? ".next-pages" : ".next",

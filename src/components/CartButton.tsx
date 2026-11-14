@@ -6,12 +6,11 @@ import { useCart } from "./CartProvider";
 export default function CartButton() {
   const { count } = useCart();
   return (
-    <Link href="/cart" className="cart-link" aria-label="Cart">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="9" cy="21" r="1" /><circle cx="20" cy="21" r="1" />
-        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+    <Link href="/cart" className="icon-btn cart-btn" aria-label={count ? `Cart, ${count} item${count === 1 ? "" : "s"}` : "Cart"}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M6 7h12l-1 12.2a1 1 0 0 1-1 .8H8a1 1 0 0 1-1-.8L6 7Z" />
+        <path d="M9 7V6a3 3 0 0 1 6 0v1" />
       </svg>
-      <span className="hide-sm">Cart</span>
       {count > 0 && <span className="cart-count">{count}</span>}
     </Link>
   );
