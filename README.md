@@ -87,28 +87,36 @@ Sign up free at https://cloudinary.com and fill `CLOUDINARY_CLOUD_NAME`, `CLOUDI
 
 ---
 
-## 4. Going live
+## 4. Going live (Hostinger Web App)
 
-Recommended setup: **Railway** (hosting + PostgreSQL in one place, about $5/month) + **Cloudinary** (free).
+The shop runs at **https://rafail.shop** as a Hostinger **Web App** (hPanel → Websites → Web Apps),
+deployed from this GitHub repository. Every push to `main` redeploys it automatically.
 
-1. **Switch the database to PostgreSQL.** In `prisma/schema.prisma` change
-   `provider = "sqlite"` → `provider = "postgresql"`.
-2. Put the code on GitHub (the `.env` file is ignored automatically).
-3. On https://railway.app: *New Project → Deploy from GitHub repo*, then *+ New → Database → PostgreSQL*.
-4. In the app's **Variables**, add everything from your `.env`, with:
-   - `DATABASE_URL` = the PostgreSQL connection URL from Railway
-   - `NEXT_PUBLIC_SITE_URL` = `https://your-domain.in`
-   - a new strong `AUTH_SECRET` and `ADMIN_PASSWORD`
-   - your Cloudinary keys (so photos are stored safely)
-5. Set the **Start command** to `npx prisma db push && npm start`.
-   Run `npx prisma db push && npx tsx prisma/seed.ts` once if you want the sample products there too.
-6. **Domain**: buy one (e.g. `rafailnatural.in` from GoDaddy / Hostinger / Cloudflare), then in Railway
-   *Settings → Domains → Custom domain* and add the DNS record it shows at your domain provider.
-   HTTPS is set up automatically.
-7. Add the Razorpay webhook (step 3 above) with your real domain, and switch to live keys after KYC.
+**Build settings:** Next.js · Node 22.x · branch `main` · build command `npm run build` · output `.next`.
 
-Other hosts (Render, a VPS, Vercel with a hosted Postgres such as Neon) also work. On hosts
-without permanent disk storage (like Vercel), Cloudinary is **required** for photos.
+**Environment variables** (hPanel → the app → settings; never commit them):
+
+| Name | What it is |
+|---|---|
+| `DATA_DIR` | `~/rafail-data`: the permanent folder for the database, uploaded photos and home banner. It lives outside the app folder, so redeploys never wipe orders or photos. |
+| `AUTH_SECRET` | Long random text that signs logins. |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | The admin panel login. |
+| `NEXT_PUBLIC_SITE_URL` | `https://rafail.shop` (used in email links). |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | Keys for order alerts on the owner's phone. Generate with `npx web-push generate-vapid-keys`. Changing them means turning alerts on again on each device. |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM`, `ADMIN_NOTIFY_EMAIL` | Order emails (e.g. Gmail with an app password). Optional. |
+| `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | Online card / netbanking / UPI payments. Use **live** keys only. Webhook URL: `https://rafail.shop/api/razorpay/webhook`. |
+
+**How the live data is set up:** when the server starts, `src/instrumentation.ts` creates any missing
+database tables and adds the five real products from `prisma/live-catalog.json` (photos in
+`public/catalog/`) if they are not there yet. It only adds what is missing, so the owner's changes in
+the admin panel are never overwritten.
+
+**Changing the database structure** (`prisma/schema.prisma`): a new table is created on the next start,
+but changes to existing tables need care on the live database. Back it up first (download
+`~/rafail-data/shop.db` from hPanel → File Manager).
+
+**GitHub Pages preview** (browse-only copy): `sh scripts/build-pages.sh <folder>`, then publish that
+folder to the `gh-pages` branch.
 
 ---
 
