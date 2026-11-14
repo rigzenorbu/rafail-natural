@@ -9,17 +9,21 @@ const run = (cmd, env = process.env) => execSync(cmd, { stdio: "inherit", env })
 const raw = process.env.DATA_DIR?.trim();
 
 run("npx prisma generate");
+run("node scripts/schema-sql.mjs");
 if (raw) {
   const dir = path.resolve(raw.startsWith("~") ? path.join(os.homedir(), raw.slice(1)) : raw);
-  mkdirSync(path.join(dir, "uploads"), { recursive: true });
-  mkdirSync(path.join(dir, "promo"), { recursive: true });
-  const env = {
-    ...process.env,
-    DATABASE_URL: process.env.DATABASE_URL || `file:${path.join(dir, "shop.db")}`,
-    UPLOAD_DIR: process.env.UPLOAD_DIR || path.join(dir, "uploads"),
-  };
+  try {
+    mkdirSync(path.join(dir, "uploads"), { recursive: true });
+    mkdirSync(path.join(dir, "promo"), { recursive: true });
+  } catch {}
+  const env = { ...process.env, DATABASE_URL: process.env.DATABASE_URL || `file:${path.join(dir, "shop.db")}` };
   console.log(`Data folder: ${dir}`);
-  run("npx prisma db push --skip-generate", env);
-  run("npx tsx prisma/seed-live.ts", env);
+  // If the build runs where the shop runs, prepare the data now; if not, the server does it on start.
+  try {
+    run("npx prisma db push --skip-generate", env);
+    run("npx tsx prisma/seed-live.ts", env);
+  } catch {
+    console.log("Could not prepare the data folder during the build; the server will do it when it starts.");
+  }
 }
 run("npx next build");

@@ -35,7 +35,7 @@
       "category": "seabuckthorn",
       "isFeatured": true,
       "images": [
-        "rafail-sea-buckthorn-pulp-v2.jpg"
+        "/catalog/rafail-sea-buckthorn-pulp-v2.jpg"
       ],
       "variants": [
         {
@@ -55,7 +55,7 @@
       "category": "himalayan-wellness",
       "isFeatured": true,
       "images": [
-        "rafail-shilajit.jpg"
+        "/catalog/rafail-shilajit.jpg"
       ],
       "variants": [
         {
@@ -75,7 +75,7 @@
       "category": "snow-land",
       "isFeatured": true,
       "images": [
-        "snowland-fullers-earth-seabuckthorn-v2.jpg"
+        "/catalog/snowland-fullers-earth-seabuckthorn-v2.jpg"
       ],
       "variants": [
         {
@@ -95,7 +95,7 @@
       "category": "snow-land",
       "isFeatured": true,
       "images": [
-        "snowland-fullers-earth-v2.jpg"
+        "/catalog/snowland-fullers-earth-v2.jpg"
       ],
       "variants": [
         {
@@ -115,7 +115,7 @@
       "category": "snow-land",
       "isFeatured": true,
       "images": [
-        "snowland-seabuckthorn-dry-berry.jpg"
+        "/catalog/snowland-seabuckthorn-dry-berry.jpg"
       ],
       "variants": [
         {
