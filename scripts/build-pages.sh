@@ -29,4 +29,6 @@ curl -s "http://localhost:$PORT$BASE/this-page-does-not-exist" -o "$OUT/404.html
 
 # Images are stored with site-root addresses; point them at the Pages sub-folder.
 find "$OUT" -name '*.html' -exec perl -pi -e "s{(\\\\?\")/(uploads|showcase|promo)/}{\$1$BASE/\$2/}g" {} +
+# Pictures in public/ are addressed from the site root too (src="/x.jpg"); point those at the sub-folder.
+find "$OUT" -name '*.html' -exec perl -pi -e "s{(src=\\\\?\")/(?!/|_next/|rafail-natural/)}{\$1$BASE/}g" {} +
 echo "Built $(find "$OUT" -name '*.html' | wc -l) pages in $OUT"

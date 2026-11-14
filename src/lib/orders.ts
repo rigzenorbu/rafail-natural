@@ -4,6 +4,7 @@ import { finalPrice } from "./pricing";
 import { getSettings, razorpayEnabled } from "./settings";
 import { getRazorpay } from "./razorpay";
 import { sendOrderEmails } from "./email";
+import { newOrderAlert } from "./notify";
 import { INDIAN_STATES } from "./constants";
 
 export type CartInput = { variantId: number; quantity: number }[];
@@ -219,7 +220,10 @@ export async function createOrder(input: {
     });
   });
 
-  if (method !== "ONLINE") await sendOrderEmails(order);
+  if (method !== "ONLINE") {
+    await sendOrderEmails(order);
+    await newOrderAlert(order);
+  }
   return { order };
 }
 
@@ -270,6 +274,7 @@ export async function markOrderPaid(razorpayOrderId: string, razorpayPaymentId: 
   });
   const fresh = await prisma.order.findUniqueOrThrow({ where: { id: order.id }, include: { items: true } });
   await sendOrderEmails(fresh);
+  await newOrderAlert(fresh);
   return fresh;
 }
 

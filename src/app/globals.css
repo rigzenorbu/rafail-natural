@@ -254,28 +254,60 @@ p { margin: 0 0 1em; }
 .pay-option input { margin-top: 3px; accent-color: var(--green); }
 .pay-option strong { display: block; }
 /* order page: pay by UPI QR */
-.upi-pay { display: grid; grid-template-columns: 300px 1fr; gap: 28px; align-items: start; }
-.upi-pay-qr { text-align: center; border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 10px 14px; background: #fff; }
-.upi-pay-qr img { width: 100%; height: auto; }
-.upi-pay-name { font-weight: 700; letter-spacing: 0.04em; }
-.upi-pay-info { min-width: 0; }
-.order-layout { grid-template-columns: 1fr 320px; }
-.upi-steps { margin: 0 0 16px; padding-left: 20px; line-height: 1.7; }
-.upi-pay code { background: var(--bg-soft); padding: 2px 6px; border-radius: 4px; word-break: break-all; }
+.upi-box { margin-bottom: 20px; padding: 0; overflow: hidden; }
+.upi-box-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding: 24px 28px 0; }
+.upi-box-head h1 { font-size: 1.45rem; margin: 2px 0 0; }
+.upi-eyebrow { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.upi-status { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: var(--orange-light); color: #9a4d0b; font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+.upi-status i { width: 8px; height: 8px; border-radius: 50%; background: var(--orange); animation: upi-pulse 1.6s ease-in-out infinite; }
+.upi-status.is-checking { background: var(--green-light); color: var(--green-dark); }
+.upi-status.is-checking i { background: var(--green); }
+@keyframes upi-pulse { 50% { opacity: 0.25; } }
+.upi-amount { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 10px 28px 0; }
+.upi-amount-value { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; color: #1d2420; }
+.upi-track { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 18px 28px 0; padding: 0; counter-reset: s; }
+.upi-track li { counter-increment: s; position: relative; padding-top: 12px; font-size: 0.82rem; color: var(--muted); border-top: 3px solid var(--border); }
+.upi-track li::before { content: counter(s) ". "; font-weight: 700; }
+.upi-track li.done { border-top-color: var(--green); color: var(--green-dark); font-weight: 600; }
+.upi-grid { display: grid; grid-template-columns: 290px 1fr; gap: 28px; padding: 24px 28px; align-items: start; }
+.upi-qr-card { text-align: center; padding: 14px 14px 16px; border-radius: 14px; border: 1px solid var(--border); background: #fff; box-shadow: 0 8px 24px rgba(20, 30, 24, 0.06); }
+.upi-qr-card img { width: 100%; height: auto; display: block; }
+.upi-qr-name { font-weight: 800; letter-spacing: 0.06em; margin-top: 4px; }
+.upi-apps { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+.upi-save { display: inline-block; margin-top: 12px; font-size: 0.85rem; font-weight: 600; color: var(--green); }
+.upi-side { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.upi-step { display: grid; grid-template-columns: 30px 1fr; gap: 12px; }
+.upi-step p { margin: 4px 0 0; color: var(--muted); font-size: 0.9rem; }
+.upi-num { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--green-light); color: var(--green-dark); font-weight: 700; font-size: 0.9rem; }
+.upi-copy { display: grid; grid-template-columns: 62px minmax(0, 1fr) auto; align-items: center; gap: 8px; margin-top: 8px; padding: 6px 6px 6px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-soft); font-size: 0.85rem; }
+.upi-copy span { color: var(--muted); }
+.upi-copy code { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.82rem; }
+.upi-copy button { border: 1px solid var(--border); background: #fff; border-radius: 6px; padding: 5px 10px; font: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+.upi-copy button:hover { border-color: var(--green); color: var(--green); }
+.upi-side .btn-whatsapp { margin-top: 12px; }
 .upi-open { display: none; }
-.btn-whatsapp { background: #1f8f4e; color: #fff; margin-top: 16px; width: 100%; }
+.only-phone { display: none; }
+.upi-foot { padding: 14px 28px; border-top: 1px solid var(--border); background: var(--bg-soft); font-size: 0.84rem; color: var(--muted); line-height: 1.6; }
+.btn-whatsapp { background: #1f8f4e; color: #fff; width: 100%; }
 .btn-whatsapp:hover { background: #18773f; }
-.upi-ref-toggle { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--border); }
-.upi-ref-toggle summary { cursor: pointer; color: var(--muted); font-size: 0.9rem; }
+.upi-ref-toggle { margin-top: 14px; }
+.upi-ref-toggle summary { cursor: pointer; color: var(--muted); font-size: 0.88rem; }
 .upi-ref { margin-top: 12px; }
-.upi-ref label { display: block; font-weight: 600; margin-bottom: 8px; }
+.upi-ref label { display: block; font-weight: 600; margin-bottom: 8px; font-size: 0.9rem; }
 .upi-ref .row { display: flex; gap: 8px; }
 .upi-ref .input { flex: 1; min-width: 0; }
+.order-layout { grid-template-columns: 1fr 320px; }
 @media (max-width: 760px) {
-  .upi-pay { grid-template-columns: 1fr; }
+  .upi-box-head { padding: 18px 18px 0; flex-direction: column-reverse; gap: 10px; }
+  .upi-amount, .upi-grid, .upi-foot { padding-left: 18px; padding-right: 18px; }
+  .upi-track { margin-left: 18px; margin-right: 18px; }
+  .upi-grid { grid-template-columns: 1fr; gap: 20px; }
+  .upi-qr-card { max-width: 290px; margin: 0 auto; width: 100%; }
+  .upi-open { display: flex; order: -1; }
+  .only-phone { display: block; }
+  .only-desktop { display: none; }
+  .upi-side { display: contents; }
   .order-layout { grid-template-columns: 1fr; }
-  .upi-pay-qr { max-width: 300px; margin: 0 auto; }
-  .upi-open { display: flex; }
 }
 
 /* ---------- Orders ---------- */
@@ -318,6 +350,19 @@ p { margin: 0 0 1em; }
 .admin-side nav a { display: block; padding: 10px 12px; border-radius: 8px; margin-bottom: 2px; font-size: 0.93rem; }
 .admin-side nav a:hover { background: #2b3830; color: #fff; }
 .admin-side nav a.active { background: var(--green); color: #fff; }
+.admin-side nav a { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.nav-badge { min-width: 22px; height: 22px; padding: 0 7px; border-radius: 999px; background: var(--orange); color: #fff; font-size: 0.78rem; font-weight: 700; display: inline-grid; place-items: center; }
+/* order alerts */
+.alerts-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 12px 16px; margin-bottom: 18px; border-radius: var(--radius); background: var(--orange-light); border: 1px solid #f3d6b8; font-size: 0.9rem; }
+.alerts-bar span:first-child { flex: 1 1 320px; }
+.alerts-bar.is-on { background: var(--green-light); border-color: #cfe0d3; padding: 8px 14px; }
+.alerts-bar.is-on button { background: none; border: none; color: var(--green); font: inherit; font-weight: 600; cursor: pointer; padding: 0; }
+.order-toasts { position: fixed; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 10px; z-index: 50; max-width: calc(100vw - 32px); }
+.order-toast { position: relative; display: flex; align-items: center; gap: 14px; padding: 14px 40px 14px 16px; border-radius: 12px; background: #fff; border: 1px solid var(--border); border-left: 4px solid var(--orange); box-shadow: 0 12px 32px rgba(20, 30, 24, 0.16); animation: toast-in 0.35s ease both; }
+.order-toast-x { position: absolute; top: 6px; right: 8px; border: none; background: none; font-size: 1.2rem; color: var(--muted); cursor: pointer; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(12px); } }
+.new-pill { margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: var(--orange); color: #fff; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.03em; vertical-align: middle; }
+tr.is-new td { background: #fffaf3; }
 .admin-side .bottom { margin-top: auto; display: flex; flex-direction: column; gap: 6px; font-size: 0.88rem; }
 .admin-side .bottom a, .admin-side .bottom button { color: #c9d2cc; background: none; border: none; text-align: left; padding: 8px 12px; cursor: pointer; font: inherit; }
 .admin-side .bottom a:hover, .admin-side .bottom button:hover { color: #fff; }
@@ -403,11 +448,9 @@ p { margin: 0 0 1em; }
 /* ---------- 3D jar showcase (home page) ---------- */
 .jar3d {
   position: relative;
-  height: clamp(540px, 78vh, 760px);
+  height: clamp(600px, 86vh, 840px);
   overflow: hidden;
-  background:
-    radial-gradient(ellipse 70% 55% at 50% 72%, #fffaf3 0%, rgba(255, 250, 243, 0) 70%),
-    linear-gradient(180deg, #efe7da 0%, #f6f0e6 58%, #ece3d4 100%);
+  background: linear-gradient(180deg, #eee2cf 0%, #f3e9da 46%, #f8f2e8 70%, #f1e8da 100%);
   border-bottom: 1px solid var(--border);
 }
 .jar3d-stage { position: absolute; inset: 0; opacity: 0; transition: opacity 0.8s ease; }
@@ -422,21 +465,47 @@ p { margin: 0 0 1em; }
 .jar3d-intro p { color: var(--muted); margin: 0; font-size: 0.95rem; }
 .jar3d.is-focused .jar3d-intro { opacity: 0; transform: translateY(-12px); }
 
-.jar3d-tag {
-  position: absolute; top: 0; left: 0; display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 7px 14px; border: 1px solid rgba(60, 45, 30, 0.12); border-radius: 999px;
-  background: rgba(255, 252, 247, 0.82); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  font: inherit; color: var(--text); cursor: pointer; white-space: nowrap; max-width: 30vw;
-  box-shadow: 0 4px 14px rgba(60, 40, 20, 0.08); transition: opacity 0.3s ease, background 0.2s ease;
+/* Himalayan backdrop: a warm sun and three ridges that drift a little with the mouse */
+.jar3d-backdrop { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.jar3d-sun {
+  position: absolute; right: 17%; top: 31%; width: clamp(150px, 20vw, 280px); aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle, rgba(244, 178, 104, 0.5) 0%, rgba(244, 178, 104, 0.22) 42%, rgba(244, 178, 104, 0) 70%);
+  transform: translateX(calc(var(--px, 0) * -6px)); transition: transform 0.8s ease-out;
 }
-.jar3d-tag:hover, .jar3d-tag:focus-visible { background: #fff; outline: none; border-color: var(--orange); }
-.jar3d-tag-name { font-weight: 600; font-size: 0.84rem; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-.jar3d-tag-price { font-size: 0.82rem; color: var(--orange); font-weight: 700; }
-.jar3d-tag-price span { color: var(--muted); font-weight: 400; }
-.jar3d.is-focused .jar3d-tag { opacity: 0; pointer-events: none; }
-/* five or more jars: narrower tags that wrap instead of running into each other */
-.jar3d-many .jar3d-tag { max-width: 214px; padding: 7px 12px; }
-.jar3d-many .jar3d-tag-name { white-space: normal; text-align: center; line-height: 1.2; font-size: 0.8rem; }
+.jar3d-ridge {
+  position: absolute; left: -3%; width: 106%; bottom: var(--horizon, 27%); display: block;
+  transform: translateX(calc(var(--px, 0) * var(--drift) * -1)); transition: transform 0.8s ease-out;
+}
+.jar3d-ridge:last-child { bottom: calc(var(--horizon, 27%) - 6px); }
+.jar3d-backdrop::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: var(--horizon, 27%); background: linear-gradient(180deg, #f7f0e5 0%, #f2e9db 100%); }
+
+/* the one caption under the jar at the front */
+.jar3d-caption { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 14px; pointer-events: none; transition: opacity 0.3s ease; }
+.jar3d-caption-in { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; animation: jar3d-cap 0.45s ease both; }
+.jar3d-caption-name { font-family: "Times New Roman", Georgia, serif; font-size: clamp(1.25rem, 2.2vw, 1.6rem); color: #2a211a; white-space: nowrap; }
+.jar3d-caption-meta { color: var(--muted); font-size: 0.92rem; }
+.jar3d-caption-meta b { color: var(--orange); }
+.jar3d-caption-cta {
+  pointer-events: auto; margin-top: 10px; padding: 8px 22px; border-radius: 999px; border: 1px solid #2a211a;
+  background: transparent; color: #2a211a; font: inherit; font-weight: 600; font-size: 0.86rem; letter-spacing: 0.04em; cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.jar3d-caption-cta:hover, .jar3d-caption-cta:focus-visible { background: #2a211a; color: #fff; outline: none; }
+@keyframes jar3d-cap { from { opacity: 0; transform: translateY(6px); } }
+.jar3d-arrow {
+  position: absolute; top: 56%; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
+  border: 1px solid rgba(60, 45, 30, 0.14); background: rgba(255, 252, 247, 0.75); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  cursor: pointer; color: #2a211a; transition: background 0.2s ease, transform 0.2s ease, opacity 0.3s ease;
+}
+.jar3d-arrow svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.jar3d-arrow:hover, .jar3d-arrow:focus-visible { background: #fff; outline: none; transform: scale(1.06); }
+.jar3d-prev { left: clamp(12px, 4vw, 56px); }
+.jar3d-next { right: clamp(12px, 4vw, 56px); }
+.jar3d-dots { display: flex; gap: 8px; pointer-events: auto; }
+.jar3d-dots button { width: 8px; height: 8px; padding: 0; border: none; border-radius: 999px; background: rgba(42, 33, 26, 0.22); cursor: pointer; transition: width 0.3s ease, background 0.3s ease; }
+.jar3d-dots button.on { width: 26px; background: var(--orange); }
+.jar3d.is-focused .jar3d-caption, .jar3d.is-focused .jar3d-arrow, .jar3d.is-focused .jar3d-dots { opacity: 0; pointer-events: none; }
+.jar3d.is-focused .jar3d-caption-cta { pointer-events: none; }
 
 .jar3d-panel {
   position: absolute; top: 50%; right: clamp(16px, 5vw, 72px); transform: translateY(-50%);
@@ -461,13 +530,9 @@ p { margin: 0 0 1em; }
 
 @media (max-width: 760px) {
   .jar3d { height: clamp(500px, 74svh, 640px); }
-  .jar3d-many { height: clamp(700px, 100svh, 860px); }
-  .jar3d-many .jar3d-tag { max-width: 31vw; padding: 6px 10px; }
-  .jar3d-many .jar3d-tag-name { font-size: 0.72rem; }
-  .jar3d-tag { padding: 6px 10px; max-width: 31vw; }
-  .jar3d-tag-name { font-size: 0.72rem; white-space: normal; text-align: center; line-height: 1.2; }
-  .jar3d-tag-price { font-size: 0.74rem; }
-  .jar3d-tag-price span { display: none; }
+  .jar3d-arrow { width: 40px; height: 40px; top: auto; bottom: 86px; }
+  .jar3d-caption-name { font-size: 1.2rem; }
+  .jar3d-sun { right: 6%; top: 34%; }
   .jar3d-panel {
     top: auto; bottom: 12px; left: 12px; right: 12px; width: auto; transform: none;
     padding: 18px 18px 14px; max-height: 54%; overflow-y: auto; animation-name: jar3d-up;
@@ -484,7 +549,11 @@ p { margin: 0 0 1em; }
 
 /* ---------- Our story (Rafail's story, told as a climb) ---------- */
 .story-hero { position: relative; background: linear-gradient(180deg, #f3ece0 0%, #f8f3ea 100%); padding: 64px 0 150px; text-align: center; overflow: hidden; }
-.story-hero-inner { position: relative; z-index: 1; }
+.story-hero-inner { position: relative; z-index: 1; display: grid; grid-template-columns: auto minmax(0, 560px); justify-content: center; align-items: center; gap: clamp(28px, 5vw, 64px); text-align: left; }
+.story-hero-inner .story-lede { margin: 0; }
+/* the portrait sits in an arch, like a window onto the mountains */
+.story-portrait { margin: 0; width: clamp(190px, 22vw, 280px); aspect-ratio: 2 / 3; border-radius: 999px 999px 18px 18px; overflow: hidden; background: #e8dccb; box-shadow: 0 0 0 8px #fffaf2, 0 24px 48px rgba(60, 40, 20, 0.18); }
+.story-portrait img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
 .story-hero h1 { font-family: "Times New Roman", Georgia, serif; font-weight: 400; font-size: clamp(2.6rem, 7vw, 4.4rem); line-height: 1.05; color: #2a211a; margin-bottom: 18px; }
 .story-lede { max-width: 620px; margin: 0 auto; font-size: clamp(1.05rem, 2.2vw, 1.25rem); line-height: 1.6; color: #4a4038; }
 .story-ridge { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 110px; display: block; }
@@ -524,6 +593,8 @@ p { margin: 0 0 1em; }
 
 @media (max-width: 760px) {
   .story-hero { padding: 44px 0 110px; }
+  .story-hero-inner { grid-template-columns: 1fr; justify-items: center; text-align: center; gap: 26px; }
+  .story-portrait { width: 170px; }
   .story-ridge { height: 70px; }
   .story-trail { padding-left: 50px; }
   .story-marker { left: -50px; width: 36px; height: 36px; }

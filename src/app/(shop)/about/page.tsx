@@ -28,12 +28,17 @@ export default function AboutPage() {
     <article className="story">
       <header className="story-hero">
         <div className="container story-hero-inner">
-          <div className="hero-eyebrow">Our story · Ladakh</div>
-          <h1>Hi, I am Rafail.</h1>
-          <p className="story-lede">
-            I am a young entrepreneur from the beautiful land of Ladakh, driven by a passion for learning, creating,
-            and building something of my own.
-          </p>
+          <figure className="story-portrait">
+            <img src="/rafail-portrait.jpg" alt="Rafail, founder of Rafail Natural" width={1004} height={1504} />
+          </figure>
+          <div className="story-hero-text">
+            <div className="hero-eyebrow">Our story · Ladakh</div>
+            <h1>Hi, I am Rafail.</h1>
+            <p className="story-lede">
+              I am a young entrepreneur from the beautiful land of Ladakh, driven by a passion for learning, creating,
+              and building something of my own.
+            </p>
+          </div>
         </div>
         <svg className="story-ridge" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true">
           <path d="M0 120 L0 86 L90 62 L170 80 L265 38 L330 60 L420 22 L500 58 L585 40 L660 70 L760 14 L850 56 L930 36 L1010 72 L1100 48 L1200 78 L1200 120 Z" />

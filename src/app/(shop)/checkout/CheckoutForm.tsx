@@ -161,7 +161,7 @@ export default function CheckoutForm({ buyNow, user }: Props) {
             {quote.onlineEnabled && (
               <label className={`pay-option ${method === "ONLINE" ? "active" : ""}`}>
                 <input type="radio" name="method" checked={method === "ONLINE"} onChange={() => setMethod("ONLINE")} />
-                <span><strong>Pay online</strong><span className="muted small">UPI, debit/credit card, net banking, wallets (secured by Razorpay)</span></span>
+                <span><strong>Pay online</strong><span className="muted small">Debit/credit card, net banking or wallet (secured by Razorpay)</span></span>
               </label>
             )}
             {quote.codEnabled && (

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { pushToOwner } from "@/lib/notify";
+import { formatINR } from "@/lib/pricing";
 
 // The customer tells us the UPI reference (UTR) number of the payment they made,
 // so the shop can find it in the bank app. It does not mark the order as paid.
@@ -17,5 +19,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "This order can no longer be changed" }, { status: 400 });
   }
   await prisma.order.update({ where: { id: order.id }, data: { paymentReference: reference } });
+  await pushToOwner({
+    title: `UPI payment to check · ${formatINR(order.total)}`,
+    body: `${order.orderNumber} · reference ${reference}\n${order.customerName}`,
+    url: `/admin/orders/${order.id}`,
+    tag: `${order.orderNumber}-ref`,
+  });
   return NextResponse.json({ ok: true });
 }

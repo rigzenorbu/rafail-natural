@@ -9,6 +9,8 @@ import OrderStatusForm from "@/components/admin/OrderStatusForm";
 export default async function AdminOrderPage({ params }: { params: Promise<{ id: string }> }) {
   const order = await prisma.order.findUnique({ where: { id: Number((await params).id) }, include: { items: true, user: true } });
   if (!order) notFound();
+  // opening an order clears its "new" mark
+  if (!order.seenAt) await prisma.order.update({ where: { id: order.id }, data: { seenAt: new Date() } });
   const fullAddress = [order.customerName, order.addressLine1, order.addressLine2, `${order.city}, ${order.state} - ${order.pincode}`, `Phone: ${order.phone}`]
     .filter(Boolean)
     .join("\n");

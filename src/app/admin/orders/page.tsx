@@ -60,8 +60,11 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
           <tbody>
             {orders.length === 0 && <tr><td colSpan={7} className="muted center" style={{ padding: 32 }}>No orders found</td></tr>}
             {orders.map((o) => (
-              <tr key={o.id} className="clickable">
-                <td><Link href={`/admin/orders/${o.id}`} className="link">{o.orderNumber}</Link></td>
+              <tr key={o.id} className={`clickable ${o.seenAt ? "" : "is-new"}`}>
+                <td>
+                  <Link href={`/admin/orders/${o.id}`} className="link">{o.orderNumber}</Link>
+                  {!o.seenAt && <span className="new-pill">New</span>}
+                </td>
                 <td className="small">{formatDate(o.createdAt)}</td>
                 <td>{o.customerName}<div className="muted small">{o.phone} · {o.city}</div></td>
                 <td className="small">{o.items.map((i) => <div key={i.id}>{i.productName} ({i.variantLabel}) × {i.quantity}</div>)}</td>

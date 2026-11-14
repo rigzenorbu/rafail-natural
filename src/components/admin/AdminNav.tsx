@@ -12,14 +12,17 @@ const LINKS = [
   { href: "/admin/settings", label: "Settings" },
 ];
 
-export default function AdminNav() {
+export default function AdminNav({ newOrders = 0 }: { newOrders?: number }) {
   const pathname = usePathname();
   return (
     <nav>
       {LINKS.map((l) => {
         const active = l.href === "/admin" ? pathname === "/admin" : pathname.startsWith(l.href);
         return (
-          <Link key={l.href} href={l.href} className={active ? "active" : ""}>{l.label}</Link>
+          <Link key={l.href} href={l.href} className={active ? "active" : ""}>
+            {l.label}
+            {l.href === "/admin/orders" && newOrders > 0 && <span className="nav-badge" title={`${newOrders} new`}>{newOrders}</span>}
+          </Link>
         );
       })}
     </nav>

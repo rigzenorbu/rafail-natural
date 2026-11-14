@@ -7,17 +7,23 @@ import { useCart } from "./CartProvider";
 import { formatINR } from "@/lib/pricing";
 import type { ShowcaseProduct } from "@/lib/showcase";
 
-type Api = { focus: (i: number | null) => void };
+type Api = { focus: (i: number | null) => void; go: (i: number) => void };
 
-// World size of one jar radius, and the gap between jars standing in a row.
+// World size of one jar radius.
 const SCALE = 0.5;
-const SPACING = 1.4;
+
+// Soft Himalayan ridges behind the jars: [shape, colour, height %, how far it drifts with the mouse].
+const RIDGES: [string, string, number, number][] = [
+  ["M0 400V236L70 204L128 226L214 140L262 176L330 118L392 162L470 84L520 120L584 98L650 150L716 112L790 172L872 96L926 128L1006 74L1074 140L1150 112L1222 160L1300 104L1370 150L1440 128V400Z", "#e9dccb", 34, 4],
+  ["M0 400V292L96 250L178 280L270 212L350 262L446 226L540 276L640 214L738 262L830 236L924 280L1030 222L1126 270L1218 240L1316 282L1440 250V400Z", "#e1d2bc", 24, 9],
+  ["M0 400V338L150 306L280 330L420 296L560 326L700 304L850 334L990 308L1130 330L1270 300L1440 324V400Z", "#f0e7d9", 13, 16],
+];
 
 export default function JarShowcase({ products }: { products: ShowcaseProduct[] }) {
   const mountRef = useRef<HTMLDivElement>(null);
-  const tagRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const apiRef = useRef<Api | null>(null);
   const [active, setActive] = useState<number | null>(null);
+  const [front, setFront] = useState(0);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
   const [toast, setToast] = useState(false);
@@ -123,7 +129,7 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
       // ---------- shared jar parts ----------
       const v2 = (pts: number[][]) => pts.map(([a, b]) => new THREE.Vector2(a, b));
       const glassGeo = new THREE.LatheGeometry(
-        v2([[0, 0], [0.85, 0], [0.95, 0.025], [0.995, 0.09], [1, 0.2], [1, 2.28], [0.985, 2.4], [0.94, 2.5], [0.9, 2.55], [0.9, 2.66]]),
+        v2([[0, 0], [0.85, 0], [0.95, 0.025], [0.995, 0.09], [1, 0.2], [1, 2.3], [0.995, 2.42], [0.98, 2.5], [0.965, 2.56], [0.965, 2.66]]),
         96
       );
       // Plain see-through glass with strong reflections: far cheaper per frame than
@@ -133,10 +139,10 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
         roughness: 0.04,
         metalness: 0,
         transparent: true,
-        opacity: 0.16,
-        envMapIntensity: 2.6,
-        clearcoat: 1,
-        clearcoatRoughness: 0.03,
+        opacity: 0.14,
+        envMapIntensity: 1.5,
+        clearcoat: 0.55,
+        clearcoatRoughness: 0.05,
         depthWrite: false,
       });
       const baseGeo = new THREE.CylinderGeometry(0.96, 0.94, 0.07, 64);
@@ -176,7 +182,7 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
         // the small squat shilajit jar: black ribbed lid, label band low on the body
         pot: {
           glass: new THREE.LatheGeometry(
-            v2([[0, 0], [0.86, 0], [0.96, 0.03], [1, 0.1], [1, 1.56], [0.98, 1.7], [0.92, 1.8], [0.87, 1.85], [0.87, 1.98]]),
+            v2([[0, 0], [0.86, 0], [0.96, 0.03], [1, 0.1], [1, 1.62], [0.995, 1.74], [0.98, 1.82], [0.965, 1.87], [0.965, 1.98]]),
             96
           ),
           lid: new THREE.LatheGeometry(
@@ -212,10 +218,12 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
       const maxAniso = renderer.capabilities.getMaxAnisotropy();
       let pending = n;
       let readyAt = 0;
+      let lastTouch = 0;
       const loaded = () => {
         renderer.shadowMap.needsUpdate = true;
         if (--pending <= 0 && !disposed) {
           readyAt = performance.now();
+          lastTouch = readyAt;
           setReady(true);
         }
       };
@@ -344,41 +352,73 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
         return { outer, spin, hit, angle: 0, vel: 0, lift: 0, face: 0, scale, h: shape.height * scale, px: 0, py: 0, casters: [lid, fill, label] };
       });
       const hits = jars.map((j) => j.hit);
-
-      // ---------- where each jar stands ----------
-      // One row on wide screens. On a phone, more than three jars stand in two rows so they stay big enough to read.
-      let rowCount = 1;
-      let spanW = 0;
-      let totalH = 0;
       const maxH = Math.max(...jars.map((j) => j.h));
-      function layout() {
-        const twoRows = W / H < 1 && n > 3;
-        const top = twoRows ? Math.ceil(n / 2) : n;
-        const rows = twoRows ? [jars.slice(0, top), jars.slice(top)] : [jars];
-        // the same clear space between neighbours, however wide each container is
-        const gap = (twoRows ? 1.3 : n > 3 ? 1.25 : SPACING) - 2 * SCALE;
-        const pitch = maxH + 1.22; // leaves room for the price tag under the upper row
-        const widths = rows.map((row) => row.reduce((s, j) => s + 2 * j.scale, 0) + (row.length - 1) * gap);
-        rows.forEach((row, r) => {
-          const y = (rows.length - 1 - r) * pitch;
-          let x = -widths[r] / 2;
-          row.forEach((j) => {
-            j.px = x + j.scale;
-            x += 2 * j.scale + gap;
-            j.py = y;
-            j.casters.forEach((m) => (m.castShadow = y === 0)); // only jars on the floor shade it
-          });
-        });
-        rowCount = rows.length;
-        spanW = Math.max(...widths) + 0.1;
-        totalH = (rows.length - 1) * pitch + maxH;
-        renderer.shadowMap.needsUpdate = true;
+      const section = root.parentElement as HTMLElement;
+
+      // ---------- a pool of light on the floor where the chosen jar stands ----------
+      const glowTex = canvasTex(256, 256, (x) => {
+        const g = x.createRadialGradient(128, 128, 0, 128, 128, 128);
+        g.addColorStop(0, "rgba(255,253,248,.95)");
+        g.addColorStop(0.55, "rgba(255,251,244,.45)");
+        g.addColorStop(1, "rgba(255,251,244,0)");
+        x.fillStyle = g;
+        x.fillRect(0, 0, 256, 256);
+      });
+      glowTex.wrapS = glowTex.wrapT = THREE.ClampToEdgeWrapping;
+      const pool = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 2.2), new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, depthWrite: false }));
+      pool.rotation.x = -Math.PI / 2;
+      pool.position.set(0, 0.001, 0.15);
+      scene.add(pool);
+
+      // ---------- light snow drifting down ----------
+      const flakeTex = canvasTex(64, 64, (x) => {
+        const g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+        g.addColorStop(0, "rgba(255,255,255,1)");
+        g.addColorStop(0.4, "rgba(255,255,255,.75)");
+        g.addColorStop(1, "rgba(255,255,255,0)");
+        x.fillStyle = g;
+        x.fillRect(0, 0, 64, 64);
+      });
+      flakeTex.wrapS = flakeTex.wrapT = THREE.ClampToEdgeWrapping;
+      const FLAKES = reduceMotion ? 0 : 150;
+      const flakePos = new Float32Array(FLAKES * 3);
+      const flakeSpeed = new Float32Array(FLAKES);
+      for (let f = 0; f < FLAKES; f++) {
+        flakePos[f * 3] = (Math.random() - 0.5) * 10;
+        flakePos[f * 3 + 1] = Math.random() * 4.4;
+        flakePos[f * 3 + 2] = -4 + Math.random() * 5;
+        flakeSpeed[f] = 0.07 + Math.random() * 0.13;
       }
-      layout();
+      const flakeGeo = new THREE.BufferGeometry();
+      flakeGeo.setAttribute("position", new THREE.BufferAttribute(flakePos, 3));
+      const snow = new THREE.Points(
+        flakeGeo,
+        new THREE.PointsMaterial({ map: flakeTex, size: 0.06, transparent: true, opacity: 0.95, depthWrite: false, color: 0xffffff })
+      );
+      if (FLAKES) scene.add(snow);
+
+      // ---------- the showcase: the chosen jar stands at the front, the others step back on either side ----------
+      let pos = 0; // which jar is at the front (fractional while the row is moving)
+      let target = 0;
+      let frontIdx = 0;
+      const wrapOff = (o: number) => o - n * Math.round(o / n);
+      function place(o: number) {
+        const a = Math.abs(o);
+        const sgn = Math.sign(o);
+        const x = sgn * (1.42 * Math.min(a, 1) + 1.32 * Math.max(a - 1, 0));
+        const z = -0.9 * Math.min(a, 1) - 0.65 * Math.max(a - 1, 0);
+        // jars past the outer places sink into the floor, so the wrap-around is never seen
+        const vis = Math.min(Math.max((n / 2 - 0.05 - a) / 0.45, 0), 1);
+        return { x, z, size: (1 - 0.05 * Math.min(a, 2)) * (0.4 + 0.6 * vis), vis };
+      }
+      const sideX = n > 1 ? place(Math.min(2, Math.floor(n / 2))).x : 0;
 
       // ---------- camera framing ----------
       let focused: number | null = null;
       let hovered: number | null = null;
+      let lastAuto = 0;
+      const scratch = new THREE.PerspectiveCamera(30, 1, 0.1, 60);
+      const probe = new THREE.Vector3();
       const camPos = new THREE.Vector3();
       const camLook = new THREE.Vector3();
       const wantPos = new THREE.Vector3();
@@ -389,24 +429,36 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
         const aspect = W / H;
         const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
         if (focused === null) {
-          const needW = spanW + (aspect < 1 ? 0.35 : n > 3 ? 1.2 : 1.8);
-          const needH = rowCount > 1 ? totalH + 2.5 : n > 3 ? 3.65 : 3.3;
-          const d = Math.max(needW / aspect, needH) / (2 * t);
-          const visH = 2 * d * t;
-          // jars sit below centre, leaving the top of the frame for the heading
-          const mid = rowCount > 1 ? totalH / 2 + visH * 0.035 : Math.min(maxH, 1.49) / 2 + visH * (aspect < 1 ? 0.04 : 0.1);
-          wantLook.set(parallax.x * 0.25, mid, 0);
-          wantPos.set(parallax.x * 0.6, wantLook.y + d * 0.13 + parallax.y * 0.2, d);
+          // phones show the front jar with its neighbours peeking in; wide screens show the whole row
+          const intro = section.querySelector(".jar3d-intro") as HTMLElement | null;
+          const headPx = intro ? intro.offsetTop + intro.offsetHeight + 22 : H * 0.32;
+          const basePx = H - (aspect < 1 ? 196 : 176); // room under the jar for its name, price and button
+          const room = Math.max(basePx - headPx, H * 0.28);
+          const needW = aspect < 1 ? 2.5 : 2 * sideX + 1.5;
+          const d = Math.max(needW / aspect / (2 * t), (maxH * 1.12 * H) / (room * 2 * t));
+          // aim the camera so the front jar stands exactly on that line
+          scratch.aspect = aspect;
+          scratch.updateProjectionMatrix();
+          let ly = maxH / 2;
+          for (let it = 0; it < 4; it++) {
+            scratch.position.set(0, ly + d * 0.13, d - 0.45);
+            scratch.lookAt(0, ly, -0.45);
+            scratch.updateMatrixWorld();
+            const py = ((1 - probe.set(0, 0, 0).project(scratch).y) / 2) * H;
+            ly -= (py - basePx) / (H / (2 * d * t));
+          }
+          wantLook.set(parallax.x * 0.2, ly, -0.45);
+          wantPos.set(parallax.x * 0.5, ly + d * 0.13 + parallax.y * 0.15, d - 0.45);
+          // the ridges' foot sits a little above the front jar's base
+          section.style.setProperty("--horizon", `${Math.round(H - basePx + H * 0.07)}px`);
         } else {
           // wide screens: jar on the left, panel on the right; narrow: jar on top, panel below
-          const j = jars[focused];
-          const x = j.px;
-          const cy = j.py + j.h / 2;
-          const size = Math.max(j.h, 1.3); // a small jar is not blown up to fill the frame
+          const cy = jars[focused].h / 2;
+          const size = Math.max(jars[focused].h, 1.3); // a small jar is not blown up to fill the frame
           const wide = aspect >= 1.05;
           const d = wide ? size / (0.6 * 2 * t) : Math.max(size / (0.4 * 2 * t), 1.4 / (0.85 * 2 * t * aspect));
-          if (wide) wantLook.set(x + 2 * d * t * aspect * 0.17, cy, 0);
-          else wantLook.set(x, cy - 2 * d * t * 0.24, 0);
+          if (wide) wantLook.set(2 * d * t * aspect * 0.17, cy, 0);
+          else wantLook.set(0, cy - 2 * d * t * 0.24, 0);
           wantPos.set(wantLook.x, wantLook.y + d * 0.1, d);
         }
       }
@@ -414,13 +466,22 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
       camPos.copy(wantPos);
       camLook.copy(wantLook);
 
+      function go(i: number) {
+        const base = Math.round(target);
+        target = base + wrapOff(i - base);
+        lastTouch = performance.now();
+      }
       function focus(i: number | null) {
         focused = i;
         setActive(i);
-        if (i !== null) jars[i].vel = 0;
+        if (i !== null) {
+          go(i);
+          jars[i].vel = 0;
+        }
+        lastTouch = performance.now();
         frame();
       }
-      apiRef.current = { focus };
+      apiRef.current = { focus, go };
 
       // ---------- input ----------
       const el = renderer.domElement;
@@ -431,31 +492,42 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
         const r = el.getBoundingClientRect();
         ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
         ray.setFromCamera(ndc, camera);
-        const h = ray.intersectObjects(hits, false)[0];
+        const h = ray.intersectObjects(hits, false).find((x) => x.object.parent!.visible);
         return h ? (h.object.userData.index as number) : null;
       }
+      // Dragging slides the row along; once a jar is open, dragging turns that jar round.
       let down = false;
       let moved = 0;
       let lastX = 0;
       let lastT = 0;
-      let dragJar: number | null = null;
-      let lastTouch = 0;
+      let slideVel = 0;
+      let inside = false;
+      const slotPx = () => Math.min(Math.max(W * (W / H < 1 ? 0.45 : 0.17), 110), 300);
       const onDown = (e: PointerEvent) => {
         down = true;
         moved = 0;
         lastX = e.clientX;
         lastT = performance.now();
-        dragJar = focused ?? pick(e);
-        if (dragJar !== null) jars[dragJar].vel = 0;
+        slideVel = 0;
+        lastTouch = lastT;
+        if (focused !== null) jars[focused].vel = 0;
       };
       const onMove = (e: PointerEvent) => {
-        if (down && dragJar !== null) {
+        if (down) {
           const dx = e.clientX - lastX;
           moved += Math.abs(dx);
           const now = performance.now();
-          const da = dx * 0.012;
-          jars[dragJar].angle += da;
-          jars[dragJar].vel = da / Math.max((now - lastT) / 1000, 0.008);
+          const dts = Math.max((now - lastT) / 1000, 0.008);
+          if (focused !== null) {
+            const da = dx * 0.012;
+            jars[focused].angle += da;
+            jars[focused].vel = da / dts;
+          } else {
+            const dp = -dx / slotPx();
+            pos += dp;
+            target = pos;
+            slideVel = dp / dts;
+          }
           lastX = e.clientX;
           lastT = now;
           lastTouch = now;
@@ -463,10 +535,12 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
           return;
         }
         if (e.pointerType === "mouse") {
+          inside = true;
           hovered = pick(e);
-          el.style.cursor = hovered !== null ? "pointer" : focused !== null ? "grab" : "default";
+          el.style.cursor = hovered !== null ? "pointer" : "grab";
           const r = el.getBoundingClientRect();
           parallax.set(((e.clientX - r.left) / r.width) * 2 - 1, ((e.clientY - r.top) / r.height) * 2 - 1);
+          section.style.setProperty("--px", parallax.x.toFixed(3));
           if (focused === null) frame();
         }
       };
@@ -474,15 +548,21 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
         if (!down) return;
         down = false;
         lastTouch = performance.now();
+        if (focused === null) target = Math.round(pos + Math.max(-2, Math.min(2, slideVel * 0.16)));
         if (moved < 6) {
           const i = pick(e);
-          if (i !== null && i !== focused) focus(i);
+          if (i === null) return;
+          if (focused !== null) {
+            if (i !== focused) focus(i);
+          } else if (i === frontIdx) focus(i);
+          else go(i);
         }
-        dragJar = null;
       };
       const onLeave = () => {
+        inside = false;
         hovered = null;
         parallax.set(0, 0);
+        section.style.setProperty("--px", "0");
         if (focused === null) frame();
       };
       el.addEventListener("pointerdown", onDown);
@@ -495,7 +575,6 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
       let visible = true;
       let raf = 0;
       let prev = performance.now();
-      const proj = new THREE.Vector3();
       function tick(now: number) {
         raf = 0;
         if (disposed || !visible || document.hidden) return;
@@ -508,42 +587,65 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
         camera.position.copy(camPos);
         camera.lookAt(camLook);
 
+        // the row moves on by itself every few seconds while nobody is using it
+        if (!reduceMotion && readyAt && focused === null && !down && !inside && now - lastTouch > 6500 && now - lastAuto > 5000) {
+          target = Math.round(target) + 1;
+          lastAuto = now;
+        }
+        if (!down) pos += (target - pos) * (1 - Math.exp(-dt * 5));
+        const sliding = down || Math.abs(target - pos) > 0.0008;
+        const fi = ((Math.round(pos) % n) + n) % n;
+        if (fi !== frontIdx) {
+          frontIdx = fi;
+          setFront(fi);
+        }
+
         jars.forEach((j, i) => {
-          const idle = now - lastTouch > 2500 && !(down && dragJar === i);
-          if (!(down && dragJar === i)) {
+          const pl = place(wrapOff(i - pos));
+          const turning = down && focused === i;
+          if (!turning) {
             j.angle += j.vel * dt;
             j.vel *= Math.exp(-dt * 3.2);
           }
+          const idle = now - lastTouch > 2500 && !turning;
           const hot = hovered === i && focused === null;
-          // in the overview, a jar that was dragged round eases back to show its label again
+          // in the overview, a jar that was turned round eases back to show its label again
           if (focused === null && idle) {
-            const front = Math.round(j.angle / (Math.PI * 2)) * Math.PI * 2;
-            j.angle += (front - j.angle) * (1 - Math.exp(-dt * 2.2));
+            const ahead = Math.round(j.angle / (Math.PI * 2)) * Math.PI * 2;
+            j.angle += (ahead - j.angle) * (1 - Math.exp(-dt * 2.2));
           }
           let sway = 0;
           if (!reduceMotion) {
             if (focused === i && idle && Math.abs(j.vel) < 0.05) j.angle += dt * 0.35;
             // a slow, shallow sway that never turns the label away from the viewer
-            else if (focused === null) sway = Math.sin(now * 0.0004 + i * 1.7) * 0.16;
+            else if (focused === null) sway = Math.sin(now * 0.0004 + i * 1.7) * 0.14;
           }
-          // a hovered jar eases round to face the viewer squarely
           j.face += ((hot ? 1 : 0) - j.face) * (1 - Math.exp(-dt * 6));
-          // each jar is turned towards the camera, so side jars show their label square-on too
-          const toCam = Math.atan2(camPos.x - j.px, camPos.z);
+          // every jar turns its label towards the camera, wherever it stands
+          const toCam = Math.atan2(camPos.x - pl.x, camPos.z - pl.z);
           j.spin.rotation.y = toCam + j.angle + sway * (1 - j.face);
           j.lift += ((hot ? 0.06 : 0) - j.lift) * (1 - Math.exp(-dt * 8));
           // jars rise into place one after another once the artwork has loaded
           const u = readyAt && !reduceMotion ? Math.min(Math.max((now - readyAt - i * 110) / 900, 0), 1) : readyAt ? 1 : 0;
           const rise = 1 - Math.pow(1 - u, 3);
-          j.outer.position.set(j.px, j.py + j.lift - (1 - rise) * 0.22, 0);
-          j.outer.scale.setScalar(j.scale * (0.94 + 0.06 * rise));
-
-          const tag = tagRefs.current[i];
-          if (tag) {
-            proj.set(j.px, j.py - 0.12, 0.45).project(camera);
-            tag.style.transform = `translate(-50%, 0) translate(${((proj.x + 1) / 2) * W}px, ${((1 - proj.y) / 2) * H}px)`;
-          }
+          j.outer.visible = pl.vis > 0.01;
+          j.outer.position.set(pl.x, j.lift - (1 - rise) * 0.22 - (1 - pl.vis) * 0.35, pl.z);
+          j.outer.scale.setScalar(j.scale * (0.94 + 0.06 * rise) * pl.size);
         });
+        if (sliding || (readyAt && now - readyAt < 2200)) renderer.shadowMap.needsUpdate = true;
+
+        if (FLAKES) {
+          for (let f = 0; f < FLAKES; f++) {
+            flakePos[f * 3 + 1] -= flakeSpeed[f] * dt;
+            flakePos[f * 3] += Math.sin(now * 0.0005 + f) * 0.05 * dt;
+            if (flakePos[f * 3 + 1] < 0) {
+              flakePos[f * 3 + 1] = 4.4;
+              flakePos[f * 3] = (Math.random() - 0.5) * 10;
+            }
+          }
+          flakeGeo.attributes.position.needsUpdate = true;
+        }
+
         renderer.render(scene, camera);
       }
       const start = () => {
@@ -567,7 +669,6 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
         renderer.setSize(W, H);
         camera.aspect = W / H;
         camera.updateProjectionMatrix();
-        layout();
         frame();
         camPos.copy(wantPos);
         camLook.copy(wantLook);
@@ -611,11 +712,17 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
   }, [products]);
 
   const focus = (i: number | null) => apiRef.current?.focus(i);
+  const go = (i: number) => apiRef.current?.go(i);
   const step = (d: number) => active !== null && focus((active + d + products.length) % products.length);
   const p = active !== null ? products[active] : null;
+  const f = products[front];
 
   function onKey(e: React.KeyboardEvent) {
-    if (active === null) return;
+    if (active === null) {
+      if (e.key === "ArrowRight") go(front + 1);
+      else if (e.key === "ArrowLeft") go(front - 1);
+      return;
+    }
     if (e.key === "Escape") focus(null);
     else if (e.key === "ArrowRight") step(1);
     else if (e.key === "ArrowLeft") step(-1);
@@ -648,30 +755,54 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
   }
 
   return (
-    <section className={`jar3d ${products.length > 3 ? "jar3d-many" : ""} ${active !== null ? "is-focused" : ""}`} onKeyDown={onKey} aria-label="Our products in 3D">
+    <section className={`jar3d ${active !== null ? "is-focused" : ""}`} onKeyDown={onKey} aria-label="Our products in 3D">
+      <div className="jar3d-backdrop" aria-hidden="true">
+        <div className="jar3d-sun" />
+        {RIDGES.map(([d, colour, height, drift], i) => (
+          <svg
+            key={i}
+            className="jar3d-ridge"
+            viewBox="0 0 1440 400"
+            preserveAspectRatio="none"
+            style={{ height: `${height}%`, ["--drift" as string]: `${drift}px` }}
+          >
+            <path d={d} fill={colour} />
+          </svg>
+        ))}
+      </div>
       <div className="jar3d-stage" ref={mountRef} data-ready={ready} />
       {!ready && <div className="jar3d-loading">Preparing the jars…</div>}
 
       <div className="jar3d-intro">
-        <div className="hero-eyebrow">Snow Land · from Ladakh</div>
+        <div className="hero-eyebrow">From the heights of Ladakh</div>
         <h1>Nature&rsquo;s touch, pure as snow</h1>
-        <p>Tap a jar to explore it. Drag to turn it around.</p>
+        <p>Swipe to browse. Tap a jar to open it and turn it round.</p>
       </div>
 
-      {products.map((item, i) => (
-        <button
-          key={item.slug}
-          ref={(b) => { tagRefs.current[i] = b; }}
-          className="jar3d-tag"
-          onClick={() => focus(i)}
-          aria-label={`${item.name}, ${item.sizeLabel}, ${formatINR(item.price)}`}
-        >
-          <span className="jar3d-tag-name">{item.name}</span>
-          <span className="jar3d-tag-price">
-            {formatINR(item.price)} <span>· {item.sizeLabel}</span>
-          </span>
-        </button>
-      ))}
+      {ready && f && (
+        <>
+          <button className="jar3d-arrow jar3d-prev" onClick={() => go(front - 1)} aria-label="Previous product">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+          </button>
+          <button className="jar3d-arrow jar3d-next" onClick={() => go(front + 1)} aria-label="Next product">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" /></svg>
+          </button>
+          <div className="jar3d-caption" aria-live="polite">
+            <div className="jar3d-caption-in" key={front}>
+              <div className="jar3d-caption-name">{f.name}</div>
+              <div className="jar3d-caption-meta">
+                <b>{formatINR(f.price)}</b> · {f.sizeLabel}
+              </div>
+              <button className="jar3d-caption-cta" onClick={() => focus(front)}>Explore</button>
+            </div>
+            <div className="jar3d-dots">
+              {products.map((item, i) => (
+                <button key={item.slug} className={i === front ? "on" : ""} onClick={() => go(i)} aria-label={`Show ${item.name}`} aria-current={i === front} />
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       {p && (
         <aside className="jar3d-panel" role="dialog" aria-label={p.name} key={p.slug}>

@@ -96,6 +96,7 @@ model Order {
   razorpayOrderId   String?     @unique
   razorpayPaymentId String?
   paymentReference  String      @default("") // UPI reference (UTR) the customer typed in
+  seenAt            DateTime? // when the owner first opened it in the admin panel; empty = new
   courier           String      @default("")
   trackingNumber    String      @default("")
   items             OrderItem[]
@@ -130,4 +131,13 @@ model Setting {
   storeEmail        String  @default("hello@rafailnatural.com")
   storeAddress      String  @default("Main Bazaar, Leh, Ladakh 194101")
   announcement      String  @default("Free shipping on orders above ₹1000")
+}
+
+// Phones and computers where the owner turned on order alerts (web push).
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
 }
