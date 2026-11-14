@@ -11,3 +11,4 @@ next-env.d.ts
 *.tsbuildinfo
 .DS_Store
 node_modules.icloud-old
+.next-pages

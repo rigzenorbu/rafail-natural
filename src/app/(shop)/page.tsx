@@ -30,6 +30,7 @@ export default async function HomePage() {
       shortDescription: p.shortDescription,
       image: p.images[0]?.url ?? look.label,
       variantId: v.id,
+      sizeLabel: v.label,
       weightGrams: v.weightGrams,
       price: finalPrice(v.price, v.discountPercent),
       mrp: v.price,
@@ -126,7 +127,7 @@ export default async function HomePage() {
             <div className="feature">
               <div className="feature-icon">🔒</div>
               <h3>Secure payment</h3>
-              <p>UPI, cards and net banking via Razorpay{settings.codEnabled ? ", or Cash on Delivery" : ""}.</p>
+              <p>Scan &amp; Pay with any UPI app{settings.codEnabled ? ", or Cash on Delivery" : ""}.</p>
             </div>
           </div>
         </div>

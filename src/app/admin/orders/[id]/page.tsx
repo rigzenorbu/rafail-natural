@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { formatINR, formatWeight } from "@/lib/pricing";
-import { PAYMENT_LABELS, STATUS_LABELS } from "@/lib/constants";
+import { PAYMENT_LABELS, STATUS_LABELS, METHOD_LABELS } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import OrderStatusForm from "@/components/admin/OrderStatusForm";
 
@@ -53,8 +53,11 @@ export default async function AdminOrderPage({ params }: { params: Promise<{ id:
           <div className="card">
             <h3>Payment</h3>
             <div className="small stack">
-              <div><b>Method:</b> {order.paymentMethod === "COD" ? "Cash on Delivery" : "Online (Razorpay)"}</div>
+              <div><b>Method:</b> {METHOD_LABELS[order.paymentMethod] || order.paymentMethod}</div>
               <div><b>Status:</b> {PAYMENT_LABELS[order.paymentStatus]}{order.paidAt ? ` on ${formatDate(order.paidAt)}` : ""}</div>
+              {order.paymentMethod === "UPI" && (
+                <div><b>UPI reference from customer:</b> {order.paymentReference ? <code>{order.paymentReference}</code> : "not given yet"}</div>
+              )}
               {order.razorpayPaymentId && <div><b>Razorpay payment ID:</b> <code>{order.razorpayPaymentId}</code></div>}
               {order.razorpayOrderId && <div><b>Razorpay order ID:</b> <code>{order.razorpayOrderId}</code></div>}
             </div>

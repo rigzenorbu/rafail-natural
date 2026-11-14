@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Quote } from "@/lib/orders";
+import type { PaymentMethod, Quote } from "@/lib/orders";
 import type { CartItem } from "./CartProvider";
 
 // Asks the server for current prices, stock and shipping for the given items.
-export function useQuote(items: CartItem[] | null, paymentMethod: "ONLINE" | "COD" = "ONLINE") {
+export function useQuote(items: CartItem[] | null, paymentMethod: PaymentMethod = "ONLINE") {
   const [quote, setQuote] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(true);
   const key = JSON.stringify(items) + paymentMethod;

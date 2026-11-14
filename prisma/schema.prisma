@@ -89,12 +89,13 @@ model Order {
   codFee            Int         @default(0)
   total             Int
   totalWeightGrams  Int         @default(0)
-  paymentMethod     String // ONLINE | COD
+  paymentMethod     String // ONLINE (Razorpay) | COD | UPI (scan & pay, checked by hand)
   paymentStatus     String      @default("PENDING") // PENDING | PAID | FAILED | REFUNDED
   status            String      @default("PENDING") // PENDING | CONFIRMED | SHIPPED | DELIVERED | CANCELLED
   stockDeducted     Boolean     @default(false)
   razorpayOrderId   String?     @unique
   razorpayPaymentId String?
+  paymentReference  String      @default("") // UPI reference (UTR) the customer typed in
   courier           String      @default("")
   trackingNumber    String      @default("")
   items             OrderItem[]

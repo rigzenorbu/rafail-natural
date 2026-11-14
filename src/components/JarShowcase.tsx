@@ -4,17 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import type * as T from "three";
 import { useCart } from "./CartProvider";
-import { formatINR, formatWeight } from "@/lib/pricing";
+import { formatINR } from "@/lib/pricing";
 import type { ShowcaseProduct } from "@/lib/showcase";
 
 type Api = { focus: (i: number | null) => void };
 
-// Jar dimensions, in jar radii. The label band matches the real jar photo.
+// World size of one jar radius, and the gap between jars standing in a row.
 const SCALE = 0.5;
 const SPACING = 1.4;
-const LABEL_BOTTOM = 0.4;
-const LABEL_H = 1.66;
-const JAR_H = 2.98 * SCALE;
 
 export default function JarShowcase({ products }: { products: ShowcaseProduct[] }) {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -44,7 +41,6 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
     function buildScene(THREE: typeof T, RoomEnvironment: new () => T.Scene) {
       const root = mountRef.current!;
       const n = products.length;
-      const xs = products.map((_, i) => (i - (n - 1) / 2) * SPACING);
       const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
       let W = root.clientWidth || 1;
       let H = root.clientHeight || 1;
@@ -162,7 +158,57 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
         v2([[0, 0.06], [0.9, 0.06], [0.94, 0.1], [0.94, 2.14], [0.82, 2.19], [0.5, 2.23], [0, 2.24]]),
         64
       );
-      const labelTheta = (aspect: number) => Math.min(2.75, (LABEL_H * aspect) / 1.008);
+      const labelTheta = (height: number, aspect: number) => Math.min(2.75, (height * aspect) / 1.008);
+
+      // ---------- container shapes (all measured in radii of the container body) ----------
+      const blackLidMat = new THREE.MeshPhysicalMaterial({
+        color: 0x161616,
+        metalness: 0.55,
+        roughness: 0.42,
+        clearcoat: 0.3,
+        clearcoatRoughness: 0.4,
+        bumpMap: knurl,
+        bumpScale: 0.7,
+      });
+      const shapes = {
+        // the Snow Land jar: tall, gold lid
+        jar: { glass: glassGeo, lid: lidGeo, lidMat, fill: powderGeo, height: 2.98, labelBottom: 0.4, labelH: 1.66 },
+        // the small squat shilajit jar: black ribbed lid, label band low on the body
+        pot: {
+          glass: new THREE.LatheGeometry(
+            v2([[0, 0], [0.86, 0], [0.96, 0.03], [1, 0.1], [1, 1.56], [0.98, 1.7], [0.92, 1.8], [0.87, 1.85], [0.87, 1.98]]),
+            96
+          ),
+          lid: new THREE.LatheGeometry(
+            v2([[0, 2.36], [0.9, 2.36], [0.97, 2.345], [1.0, 2.31], [1.01, 2.26], [1.01, 1.99], [1.0, 1.955], [0.96, 1.94], [0.9, 1.94]]),
+            128
+          ),
+          lidMat: blackLidMat,
+          fill: new THREE.LatheGeometry(v2([[0, 0.06], [0.9, 0.06], [0.94, 0.1], [0.94, 1.52], [0.9, 1.62], [0.6, 1.68], [0, 1.7]]), 64),
+          height: 2.36,
+          labelBottom: 0.3,
+          labelH: 1.2,
+        },
+        // the pulp bottle: straight body, rounded shoulders, narrow neck and a small gold cap
+        bottle: {
+          glass: new THREE.LatheGeometry(
+            v2([[0, 0], [0.88, 0], [0.97, 0.04], [1, 0.14], [1, 2.8], [0.985, 2.98], [0.94, 3.16], [0.86, 3.34], [0.77, 3.5], [0.7, 3.64], [0.66, 3.78], [0.65, 3.98]]),
+            96
+          ),
+          lid: new THREE.LatheGeometry(
+            v2([[0, 4.25], [0.6, 4.25], [0.67, 4.225], [0.7, 4.17], [0.7, 3.97], [0.69, 3.94], [0.64, 3.93]]),
+            96
+          ),
+          lidMat,
+          fill: new THREE.LatheGeometry(
+            v2([[0, 0.08], [0.9, 0.08], [0.95, 0.14], [0.95, 2.8], [0.93, 2.98], [0.89, 3.14], [0.81, 3.32], [0.72, 3.48], [0.65, 3.6], [0, 3.62]]),
+            64
+          ),
+          height: 4.25,
+          labelBottom: 0.52,
+          labelH: 2.22,
+        },
+      };
       const maxAniso = renderer.capabilities.getMaxAnisotropy();
       let pending = n;
       let readyAt = 0;
@@ -238,44 +284,47 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
 
       // ---------- build jars ----------
       const jars = products.map((p, i) => {
+        const shape = shapes[p.shape ?? "jar"];
+        const scale = p.scale ?? SCALE;
         const outer = new THREE.Group();
-        outer.position.x = xs[i];
-        outer.scale.setScalar(SCALE);
+        outer.scale.setScalar(scale);
         const spin = new THREE.Group();
         outer.add(spin);
 
-        const glass = new THREE.Mesh(glassGeo, glassMat);
+        const glass = new THREE.Mesh(shape.glass, glassMat);
         glass.renderOrder = 2;
         const base = new THREE.Mesh(baseGeo, glassMat);
         base.position.y = 0.035;
-        const lid = new THREE.Mesh(lidGeo, lidMat);
+        const lid = new THREE.Mesh(shape.lid, shape.lidMat);
         lid.castShadow = true;
         spin.add(glass, base, lid);
 
-        if (p.fill === "berries") {
-          spin.add(berries(p.fillColor));
-        } else {
-          const powder = new THREE.Mesh(
-            powderGeo,
-            new THREE.MeshStandardMaterial({ color: p.fillColor, roughness: 0.96, map: grain, bumpMap: grain, bumpScale: 1.5 })
-          );
-          powder.castShadow = true;
-          spin.add(powder);
-        }
+        const fillMat =
+          p.fill === "resin"
+            ? new THREE.MeshPhysicalMaterial({ color: p.fillColor, roughness: 0.28, clearcoat: 0.7, clearcoatRoughness: 0.2 })
+            : p.fill === "pulp"
+              ? new THREE.MeshStandardMaterial({ color: p.fillColor, roughness: 0.5, bumpMap: grain, bumpScale: 0.6 })
+              : new THREE.MeshStandardMaterial({ color: p.fillColor, roughness: 0.96, map: grain, bumpMap: grain, bumpScale: 1.5 });
+        const fill = p.fill === "berries" ? berries(p.fillColor) : new THREE.Mesh(shape.fill, fillMat);
+        fill.castShadow = true;
+        spin.add(fill);
 
-        const theta = labelTheta(p.labelAspect);
-        const labelGeo = new THREE.CylinderGeometry(1.008, 1.008, LABEL_H, 128, 1, true, -theta / 2, theta);
+        const theta = labelTheta(shape.labelH, p.labelAspect);
+        const labelGeo = new THREE.CylinderGeometry(1.008, 1.008, shape.labelH, 128, 1, true, -theta / 2, theta);
         const tex = labelTexture(p.label);
         const label = new THREE.Mesh(labelGeo, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.62, envMapIntensity: 0.55 }));
-        label.position.y = LABEL_BOTTOM + LABEL_H / 2;
+        label.position.y = shape.labelBottom + shape.labelH / 2;
         label.castShadow = true;
-        // the paper's back, seen through the glass when the jar turns round
-        const labelBack = new THREE.Mesh(
-          labelGeo,
-          new THREE.MeshStandardMaterial({ color: 0xebe3d5, roughness: 0.9, side: THREE.BackSide })
-        );
-        labelBack.position.y = label.position.y;
-        spin.add(label, labelBack);
+        // Behind the artwork: either a band in the label's own colour that wraps the whole way
+        // round, or the paper's back, seen through the glass when the jar turns round.
+        const behind = p.band
+          ? new THREE.Mesh(
+              new THREE.CylinderGeometry(1.004, 1.004, shape.labelH, 96, 1, true),
+              new THREE.MeshStandardMaterial({ color: p.band, roughness: 0.62, envMapIntensity: 0.55, side: THREE.DoubleSide })
+            )
+          : new THREE.Mesh(labelGeo, new THREE.MeshStandardMaterial({ color: 0xebe3d5, roughness: 0.9, side: THREE.BackSide }));
+        behind.position.y = label.position.y;
+        spin.add(behind, label);
 
         const blob = new THREE.Mesh(
           new THREE.PlaneGeometry(3.2, 3.2),
@@ -285,16 +334,47 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
         blob.position.y = 0.004;
         outer.add(blob);
 
-        const hit = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, 3.1, 16));
-        hit.position.y = 1.5;
+        const hit = new THREE.Mesh(new THREE.CylinderGeometry(1.1, 1.1, shape.height + 0.12, 16));
+        hit.position.y = shape.height / 2;
         hit.visible = false;
         hit.userData.index = i;
         outer.add(hit);
 
         scene.add(outer);
-        return { outer, spin, hit, angle: 0, vel: 0, lift: 0, face: 0 };
+        return { outer, spin, hit, angle: 0, vel: 0, lift: 0, face: 0, scale, h: shape.height * scale, px: 0, py: 0, casters: [lid, fill, label] };
       });
       const hits = jars.map((j) => j.hit);
+
+      // ---------- where each jar stands ----------
+      // One row on wide screens. On a phone, more than three jars stand in two rows so they stay big enough to read.
+      let rowCount = 1;
+      let spanW = 0;
+      let totalH = 0;
+      const maxH = Math.max(...jars.map((j) => j.h));
+      function layout() {
+        const twoRows = W / H < 1 && n > 3;
+        const top = twoRows ? Math.ceil(n / 2) : n;
+        const rows = twoRows ? [jars.slice(0, top), jars.slice(top)] : [jars];
+        // the same clear space between neighbours, however wide each container is
+        const gap = (twoRows ? 1.3 : n > 3 ? 1.25 : SPACING) - 2 * SCALE;
+        const pitch = maxH + 1.22; // leaves room for the price tag under the upper row
+        const widths = rows.map((row) => row.reduce((s, j) => s + 2 * j.scale, 0) + (row.length - 1) * gap);
+        rows.forEach((row, r) => {
+          const y = (rows.length - 1 - r) * pitch;
+          let x = -widths[r] / 2;
+          row.forEach((j) => {
+            j.px = x + j.scale;
+            x += 2 * j.scale + gap;
+            j.py = y;
+            j.casters.forEach((m) => (m.castShadow = y === 0)); // only jars on the floor shade it
+          });
+        });
+        rowCount = rows.length;
+        spanW = Math.max(...widths) + 0.1;
+        totalH = (rows.length - 1) * pitch + maxH;
+        renderer.shadowMap.needsUpdate = true;
+      }
+      layout();
 
       // ---------- camera framing ----------
       let focused: number | null = null;
@@ -309,20 +389,24 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
         const aspect = W / H;
         const t = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
         if (focused === null) {
-          const span = (n - 1) * SPACING + 1.1;
-          const needW = span + (aspect < 1 ? 0.35 : 1.8);
-          const d = Math.max(needW / aspect, 3.3) / (2 * t);
+          const needW = spanW + (aspect < 1 ? 0.35 : n > 3 ? 1.2 : 1.8);
+          const needH = rowCount > 1 ? totalH + 2.5 : n > 3 ? 3.65 : 3.3;
+          const d = Math.max(needW / aspect, needH) / (2 * t);
           const visH = 2 * d * t;
           // jars sit below centre, leaving the top of the frame for the heading
-          wantLook.set(parallax.x * 0.25, JAR_H / 2 + visH * (aspect < 1 ? 0.04 : 0.1), 0);
+          const mid = rowCount > 1 ? totalH / 2 + visH * 0.035 : Math.min(maxH, 1.49) / 2 + visH * (aspect < 1 ? 0.04 : 0.1);
+          wantLook.set(parallax.x * 0.25, mid, 0);
           wantPos.set(parallax.x * 0.6, wantLook.y + d * 0.13 + parallax.y * 0.2, d);
         } else {
           // wide screens: jar on the left, panel on the right; narrow: jar on top, panel below
-          const x = xs[focused];
+          const j = jars[focused];
+          const x = j.px;
+          const cy = j.py + j.h / 2;
+          const size = Math.max(j.h, 1.3); // a small jar is not blown up to fill the frame
           const wide = aspect >= 1.05;
-          const d = wide ? JAR_H / (0.6 * 2 * t) : Math.max(JAR_H / (0.4 * 2 * t), 1.4 / (0.85 * 2 * t * aspect));
-          if (wide) wantLook.set(x + 2 * d * t * aspect * 0.17, JAR_H / 2, 0);
-          else wantLook.set(x, JAR_H / 2 - 2 * d * t * 0.24, 0);
+          const d = wide ? size / (0.6 * 2 * t) : Math.max(size / (0.4 * 2 * t), 1.4 / (0.85 * 2 * t * aspect));
+          if (wide) wantLook.set(x + 2 * d * t * aspect * 0.17, cy, 0);
+          else wantLook.set(x, cy - 2 * d * t * 0.24, 0);
           wantPos.set(wantLook.x, wantLook.y + d * 0.1, d);
         }
       }
@@ -431,6 +515,11 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
             j.vel *= Math.exp(-dt * 3.2);
           }
           const hot = hovered === i && focused === null;
+          // in the overview, a jar that was dragged round eases back to show its label again
+          if (focused === null && idle) {
+            const front = Math.round(j.angle / (Math.PI * 2)) * Math.PI * 2;
+            j.angle += (front - j.angle) * (1 - Math.exp(-dt * 2.2));
+          }
           let sway = 0;
           if (!reduceMotion) {
             if (focused === i && idle && Math.abs(j.vel) < 0.05) j.angle += dt * 0.35;
@@ -440,18 +529,18 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
           // a hovered jar eases round to face the viewer squarely
           j.face += ((hot ? 1 : 0) - j.face) * (1 - Math.exp(-dt * 6));
           // each jar is turned towards the camera, so side jars show their label square-on too
-          const toCam = Math.atan2(camPos.x - xs[i], camPos.z);
+          const toCam = Math.atan2(camPos.x - j.px, camPos.z);
           j.spin.rotation.y = toCam + j.angle + sway * (1 - j.face);
           j.lift += ((hot ? 0.06 : 0) - j.lift) * (1 - Math.exp(-dt * 8));
           // jars rise into place one after another once the artwork has loaded
           const u = readyAt && !reduceMotion ? Math.min(Math.max((now - readyAt - i * 110) / 900, 0), 1) : readyAt ? 1 : 0;
           const rise = 1 - Math.pow(1 - u, 3);
-          j.outer.position.y = j.lift - (1 - rise) * 0.22;
-          j.outer.scale.setScalar(SCALE * (0.94 + 0.06 * rise));
+          j.outer.position.set(j.px, j.py + j.lift - (1 - rise) * 0.22, 0);
+          j.outer.scale.setScalar(j.scale * (0.94 + 0.06 * rise));
 
           const tag = tagRefs.current[i];
           if (tag) {
-            proj.set(xs[i], -0.12, 0.45).project(camera);
+            proj.set(j.px, j.py - 0.12, 0.45).project(camera);
             tag.style.transform = `translate(-50%, 0) translate(${((proj.x + 1) / 2) * W}px, ${((1 - proj.y) / 2) * H}px)`;
           }
         });
@@ -478,6 +567,7 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
         renderer.setSize(W, H);
         camera.aspect = W / H;
         camera.updateProjectionMatrix();
+        layout();
         frame();
         camPos.copy(wantPos);
         camLook.copy(wantLook);
@@ -558,7 +648,7 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
   }
 
   return (
-    <section className={`jar3d ${active !== null ? "is-focused" : ""}`} onKeyDown={onKey} aria-label="Snow Land products in 3D">
+    <section className={`jar3d ${products.length > 3 ? "jar3d-many" : ""} ${active !== null ? "is-focused" : ""}`} onKeyDown={onKey} aria-label="Our products in 3D">
       <div className="jar3d-stage" ref={mountRef} data-ready={ready} />
       {!ready && <div className="jar3d-loading">Preparing the jars…</div>}
 
@@ -574,11 +664,11 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
           ref={(b) => { tagRefs.current[i] = b; }}
           className="jar3d-tag"
           onClick={() => focus(i)}
-          aria-label={`${item.name}, ${formatWeight(item.weightGrams)}, ${formatINR(item.price)}`}
+          aria-label={`${item.name}, ${item.sizeLabel}, ${formatINR(item.price)}`}
         >
           <span className="jar3d-tag-name">{item.name}</span>
           <span className="jar3d-tag-price">
-            {formatINR(item.price)} <span>· {formatWeight(item.weightGrams)}</span>
+            {formatINR(item.price)} <span>· {item.sizeLabel}</span>
           </span>
         </button>
       ))}
@@ -586,7 +676,7 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
       {p && (
         <aside className="jar3d-panel" role="dialog" aria-label={p.name} key={p.slug}>
           <button className="jar3d-close" onClick={() => focus(null)} aria-label="Back to all jars">×</button>
-          <div className="hero-eyebrow">Snow Land</div>
+          <div className="hero-eyebrow">Rafail Natural</div>
           <h2>{p.name}</h2>
           <p className="muted">{p.shortDescription}</p>
           <div className="product-price">
@@ -594,7 +684,7 @@ export default function JarShowcase({ products }: { products: ShowcaseProduct[] 
             {p.mrp > p.price && <span className="mrp">MRP {formatINR(p.mrp)}</span>}
           </div>
           <p className="muted small">
-            Net weight {formatWeight(p.weightGrams)} · {p.stock > 0 ? "In stock" : "Out of stock"} · Inclusive of all taxes
+            Net quantity {p.sizeLabel} · {p.stock > 0 ? "In stock" : "Out of stock"} · Inclusive of all taxes
           </p>
           <div className="jar3d-actions">
             <button className="btn btn-accent btn-lg" disabled={p.stock <= 0} onClick={() => addToCart(p)}>Add to cart</button>

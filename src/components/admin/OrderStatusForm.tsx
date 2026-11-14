@@ -59,6 +59,7 @@ export default function OrderStatusForm({ order }: Props) {
           {PAYMENT_STATUSES.map((s) => <option key={s} value={s}>{PAYMENT_LABELS[s]}</option>)}
         </select>
         {order.paymentMethod === "COD" && <span className="hint">For COD, mark as Paid once you receive the cash.</span>}
+        {order.paymentMethod === "UPI" && <span className="hint">Check the SBI / YONO app for this payment (match the amount and the customer&apos;s UPI reference), then mark as Paid. The order is confirmed automatically.</span>}
         {order.paymentMethod === "ONLINE" && <span className="hint">Refunds are made from the Razorpay dashboard. Mark as Refunded here afterwards.</span>}
       </div>
       {msg && <p className={`alert small ${msg.ok ? "alert-success" : "alert-error"}`}>{msg.text}</p>}

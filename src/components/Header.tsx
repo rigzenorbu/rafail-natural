@@ -19,7 +19,11 @@ export default async function Header() {
   const [user, settings] = await Promise.all([getCurrentUser(), getSettings()]);
   return (
     <>
-      {settings.announcement && <div className="announcement">{settings.announcement}</div>}
+      {process.env.PAGES_BASE_PATH ? (
+        <div className="announcement">Preview of the shop: you can browse everything here. Ordering and payment are switched off on this preview link.</div>
+      ) : (
+        settings.announcement && <div className="announcement">{settings.announcement}</div>
+      )}
       <header className="header">
         <div className="container header-inner">
           <Link href="/" aria-label="Home"><Logo /></Link>

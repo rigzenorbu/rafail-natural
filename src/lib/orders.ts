@@ -7,7 +7,11 @@ import { sendOrderEmails } from "./email";
 import { INDIAN_STATES } from "./constants";
 
 export type CartInput = { variantId: number; quantity: number }[];
-export type PaymentMethod = "ONLINE" | "COD";
+export type PaymentMethod = "ONLINE" | "COD" | "UPI";
+
+export function asPaymentMethod(v: unknown): PaymentMethod {
+  return v === "COD" || v === "UPI" ? v : "ONLINE";
+}
 
 export const MAX_QTY = 50;
 
@@ -80,6 +84,7 @@ export async function buildQuote(rawItems: unknown, paymentMethod: PaymentMethod
     freeShippingAbove: settings.freeShippingAbove,
     codEnabled: settings.codEnabled,
     onlineEnabled: razorpayEnabled(),
+    upiEnabled: true,
     hasProblems: lines.some((l) => !l.available || l.error),
   };
 }
@@ -138,7 +143,7 @@ export async function createOrder(input: {
   userId?: number | null;
 }) {
   const customer = validateCustomer(input.customer);
-  const method: PaymentMethod = input.paymentMethod === "COD" ? "COD" : "ONLINE";
+  const method = asPaymentMethod(input.paymentMethod);
   const quote = await buildQuote(input.items, method);
 
   if (quote.lines.length === 0) throw new OrderError("Your cart is empty");
@@ -163,8 +168,8 @@ export async function createOrder(input: {
       : null;
 
   const order = await prisma.$transaction(async (tx) => {
-    // COD orders reserve stock immediately; online orders when payment succeeds.
-    if (method === "COD") {
+    // COD and UPI orders reserve stock immediately; Razorpay orders when payment succeeds.
+    if (method !== "ONLINE") {
       for (const l of lines) {
         const res = await tx.productVariant.updateMany({
           where: { id: l.variantId, stock: { gte: l.quantity } },
@@ -195,7 +200,7 @@ export async function createOrder(input: {
         totalWeightGrams: quote.totalWeightGrams,
         paymentMethod: method,
         status: method === "COD" ? "CONFIRMED" : "PENDING",
-        stockDeducted: method === "COD",
+        stockDeducted: method !== "ONLINE",
         razorpayOrderId,
         items: {
           create: lines.map((l) => ({
@@ -214,7 +219,7 @@ export async function createOrder(input: {
     });
   });
 
-  if (method === "COD") await sendOrderEmails(order);
+  if (method !== "ONLINE") await sendOrderEmails(order);
   return { order };
 }
 

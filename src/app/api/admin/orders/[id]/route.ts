@@ -13,8 +13,11 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
   if (!order) return NextResponse.json({ error: "Order not found" }, { status: 404 });
 
   const body = await req.json().catch(() => ({}));
-  const status = ORDER_STATUSES.includes(body.status) ? (body.status as string) : order.status;
+  let status = ORDER_STATUSES.includes(body.status) ? (body.status as string) : order.status;
   const paymentStatus = PAYMENT_STATUSES.includes(body.paymentStatus) ? (body.paymentStatus as string) : order.paymentStatus;
+
+  // A UPI order waits for the shop to see the money; marking it Paid confirms it.
+  if (order.paymentMethod === "UPI" && paymentStatus === "PAID" && status === "PENDING") status = "CONFIRMED";
 
   if (status === "CANCELLED" && order.status !== "CANCELLED") await restoreStock(id);
   if (order.status === "CANCELLED" && status !== "CANCELLED") {

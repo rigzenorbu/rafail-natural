@@ -63,13 +63,15 @@ function wrap(body: string) {
 
 export async function sendOrderEmails(order: OrderWithItems) {
   const link = `${siteUrl()}/order/${order.orderNumber}?t=${order.accessToken}`;
-  const payment = order.paymentMethod === "COD" ? "Cash on Delivery" : "Paid online";
+  const upiUnpaid = order.paymentMethod === "UPI" && order.paymentStatus !== "PAID";
+  const payment =
+    order.paymentMethod === "COD" ? "Cash on Delivery" : order.paymentMethod === "UPI" ? (upiUnpaid ? "UPI / QR (payment to be verified)" : "UPI / QR (paid)") : "Paid online";
 
   await send(
     order.email,
-    `Order ${order.orderNumber} confirmed – ${STORE_NAME}`,
+    `Order ${order.orderNumber} ${upiUnpaid ? "received" : "confirmed"} – ${STORE_NAME}`,
     wrap(`<p>Hi ${escapeHtml(order.customerName)},</p>
-      <p>Thank you for your order! We will let you know when it ships.</p>
+      <p>Thank you for your order! ${upiUnpaid ? "It will be confirmed as soon as we receive your UPI payment. If you have not paid yet, open the link below to see the QR code." : "We will let you know when it ships."}</p>
       <p><b>Order:</b> ${order.orderNumber}<br><b>Payment:</b> ${payment}</p>
       ${itemsTable(order)}
       <p><b>Delivery address</b><br>${address(order)}</p>

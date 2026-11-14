@@ -45,7 +45,7 @@ export default async function Footer() {
         </div>
         <div className="footer-bottom">
           <span>© {new Date().getFullYear()} Rafail Natural. All rights reserved.</span>
-          <span>Secure payments by Razorpay · UPI · Cards · Net banking · COD</span>
+          <span>UPI Scan & Pay · Cash on Delivery</span>
         </div>
       </div>
     </footer>

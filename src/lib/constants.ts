@@ -16,6 +16,12 @@ export const PAYMENT_LABELS: Record<string, string> = {
   REFUNDED: "Refunded",
 };
 
+export const METHOD_LABELS: Record<string, string> = {
+  COD: "Cash on Delivery",
+  UPI: "UPI / QR (Scan & Pay)",
+  ONLINE: "Online (Razorpay)",
+};
+
 export const INDIAN_STATES = [
   "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar",
   "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli and Daman and Diu", "Delhi", "Goa",
@@ -27,8 +33,8 @@ export const INDIAN_STATES = [
 
 export const STORE_NAME = "Rafail Natural";
 
-// Orders that count as real sales (COD, or paid online), excluding cancelled ones.
+// Orders the shop should see: COD, UPI (paid or waiting to be checked), or paid online. Cancelled ones are left out.
 export const REAL_ORDER = {
   status: { not: "CANCELLED" },
-  OR: [{ paymentMethod: "COD" }, { paymentStatus: "PAID" }],
+  OR: [{ paymentMethod: "COD" }, { paymentMethod: "UPI" }, { paymentStatus: "PAID" }],
 };

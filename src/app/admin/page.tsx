@@ -28,7 +28,7 @@ export default async function AdminDashboard() {
 
       {!razorpayEnabled() && (
         <p className="alert alert-info" style={{ marginBottom: 20 }}>
-          Online payment is off because Razorpay keys are not set in the <code>.env</code> file. Customers can still order with Cash on Delivery.
+          Razorpay is off (its keys are not set in the <code>.env</code> file). Customers pay by Scan &amp; Pay (UPI / QR) or Cash on Delivery. For UPI orders, check the payment in the SBI app and mark the order as Paid.
         </p>
       )}
 
@@ -54,7 +54,7 @@ export default async function AdminDashboard() {
                   <tr key={o.id} className="clickable">
                     <td><Link href={`/admin/orders/${o.id}`} className="link">{o.orderNumber}</Link><div className="muted small">{formatDate(o.createdAt)}</div></td>
                     <td>{o.customerName}<div className="muted small">{o.city}</div></td>
-                    <td>{formatINR(o.total)}<div className="muted small">{o.paymentMethod === "COD" ? "COD" : "Paid online"}</div></td>
+                    <td>{formatINR(o.total)}<div className="muted small">{o.paymentMethod === "COD" ? "COD" : o.paymentMethod === "UPI" ? (o.paymentStatus === "PAID" ? "UPI paid" : "UPI, to check") : "Paid online"}</div></td>
                     <td><span className={`status-pill status-${o.status}`}>{STATUS_LABELS[o.status]}</span></td>
                   </tr>
                 ))}

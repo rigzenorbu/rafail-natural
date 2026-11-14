@@ -7,6 +7,7 @@ import { formatDate } from "@/lib/utils";
 
 const TABS = [
   { key: "", label: "All orders" },
+  { key: "PENDING", label: "Payment to check" },
   { key: "CONFIRMED", label: "To ship" },
   { key: "SHIPPED", label: "Shipped" },
   { key: "DELIVERED", label: "Delivered" },
@@ -67,7 +68,7 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                 <td><b>{formatINR(o.total)}</b></td>
                 <td>
                   <span className={`status-pill status-${o.paymentStatus}`}>{PAYMENT_LABELS[o.paymentStatus]}</span>
-                  <div className="muted small">{o.paymentMethod === "COD" ? "Cash on delivery" : "Online"}</div>
+                  <div className="muted small">{o.paymentMethod === "COD" ? "Cash on delivery" : o.paymentMethod === "UPI" ? `UPI / QR${o.paymentReference ? ` · ref ${o.paymentReference}` : ""}` : "Online"}</div>
                 </td>
                 <td><span className={`status-pill status-${o.status}`}>{STATUS_LABELS[o.status]}</span></td>
               </tr>

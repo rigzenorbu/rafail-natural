@@ -87,7 +87,7 @@ export default async function PolicyPage({ params }: Props) {
           </ul>
           <h2>Payments</h2>
           <p>
-            Online payments are processed securely by Razorpay. We never see or store your card, UPI or bank details.
+            Online payments are made by UPI directly from your own payment app to our bank account. We never see or store your card, UPI PIN or bank details.
           </p>
           <h2>Sharing</h2>
           <p>We share your delivery details only with courier partners to deliver your order. We never sell your personal information.</p>
@@ -105,7 +105,7 @@ export default async function PolicyPage({ params }: Props) {
           <h2>Orders</h2>
           <p>We may cancel an order if a product is out of stock, the delivery address is not serviceable, or there is an error in pricing. In such cases any amount paid will be refunded in full.</p>
           <h2>Payments</h2>
-          <p>Online payments are handled by Razorpay. Cash on Delivery may be available for selected orders.</p>
+          <p>Online payments are made by UPI (Scan &amp; Pay). Cash on Delivery may be available for selected orders.</p>
           <h2>Governing law</h2>
           <p>These terms are governed by the laws of India. Any disputes are subject to the jurisdiction of courts in Leh, Ladakh.</p>
         </>

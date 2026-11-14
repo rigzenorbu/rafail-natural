@@ -22,7 +22,7 @@ export default function CheckoutForm({ buyNow, user }: Props) {
   const cart = useCart();
   const items = buyNow ? [buyNow] : cart.loaded ? cart.items : null;
 
-  const [method, setMethod] = useState<"ONLINE" | "COD">("ONLINE");
+  const [method, setMethod] = useState<"ONLINE" | "COD" | "UPI">("UPI");
   const { quote, loading } = useQuote(items, method);
   const [form, setForm] = useState({
     name: user?.name || "",
@@ -50,8 +50,8 @@ export default function CheckoutForm({ buyNow, user }: Props) {
   // Pick a payment method that is actually available.
   useEffect(() => {
     if (!quote) return;
-    if (method === "ONLINE" && !quote.onlineEnabled && quote.codEnabled) setMethod("COD");
-    if (method === "COD" && !quote.codEnabled && quote.onlineEnabled) setMethod("ONLINE");
+    if (method === "ONLINE" && !quote.onlineEnabled) setMethod("UPI");
+    if (method === "COD" && !quote.codEnabled) setMethod("UPI");
   }, [quote, method]);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
@@ -110,7 +110,7 @@ export default function CheckoutForm({ buyNow, user }: Props) {
   }
   if (!quote) return <p className="alert alert-error">Could not load prices. Please refresh the page.</p>;
 
-  const noPayment = !quote.onlineEnabled && !quote.codEnabled;
+  const noPayment = !quote.onlineEnabled && !quote.codEnabled && !quote.upiEnabled;
   const locked = Boolean(pending);
 
   return (
@@ -149,6 +149,15 @@ export default function CheckoutForm({ buyNow, user }: Props) {
         <fieldset className="card" disabled={locked} style={{ margin: 0 }}>
           <h3>Payment method</h3>
           <div className="stack">
+            {quote.upiEnabled && (
+              <label className={`pay-option ${method === "UPI" ? "active" : ""}`}>
+                <input type="radio" name="method" checked={method === "UPI"} onChange={() => setMethod("UPI")} />
+                <span>
+                  <strong>Scan &amp; Pay (UPI / QR)</strong>
+                  <span className="muted small">Pay with any UPI app: Google Pay, PhonePe, Paytm, BHIM, YONO SBI. You get the QR code on the next screen.</span>
+                </span>
+              </label>
+            )}
             {quote.onlineEnabled && (
               <label className={`pay-option ${method === "ONLINE" ? "active" : ""}`}>
                 <input type="radio" name="method" checked={method === "ONLINE"} onChange={() => setMethod("ONLINE")} />
@@ -207,7 +216,9 @@ export default function CheckoutForm({ buyNow, user }: Props) {
               ? `Retry payment of ${formatINR(quote.total)}`
               : method === "COD"
                 ? `Place order (${formatINR(quote.total)})`
-                : `Pay ${formatINR(quote.total)}`}
+                : method === "UPI"
+                  ? `Place order & pay ${formatINR(quote.total)}`
+                  : `Pay ${formatINR(quote.total)}`}
         </button>
         <p className="muted small center" style={{ marginTop: 10, marginBottom: 0 }}>
           By placing the order you agree to our <Link href="/policies/terms" className="link">terms</Link> and{" "}
